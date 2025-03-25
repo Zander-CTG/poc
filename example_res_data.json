@@ -1,0 +1,33 @@
+{
+  "id": "chatcmpl-BCu3LkqIZDJFBOcnKA08EtybJk4yI",
+  "object": "chat.completion",
+  "created": 1742415103,
+  "model": "gpt-4-turbo-2024-04-09",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\n \"total_detected_items\": 26,\n \"total_identified_items\": 26,\n \"items\": [\n {\n \"index\": 1,\n \"title\": \"Charcoal barbecue grill\",\n \"brand\": \"Unknown\",\n \"description\": \"Portable red charcoal barbecue grill\",\n \"categories\": [\"Outdoor\", \"Cooking equipment\"],\n \"tags\": [\"grill\", \"barbecue\", \"cooking\", \"outdoor\"],\n \"visible_text\": \"\",\n \"material\": \"Metal\"\n },\n {\n \"index\": 2,\n \"title\": \"Yellow rubber boots\",\n \"brand\": \"Unknown\",\n \"description\": \"Pair of yellow rubber boots standing upright on grass\",\n \"categories\": [\"Footwear\"],\n \"tags\": [\"boots\", \"rain boots\", \"rubber boots\"],\n \"visible_text\": \"\",\n \"material\": \"Rubber\"\n },\n {\n \"index\": 3,\n \"title\": \"Clothing rack\",\n \"brand\": \"Unknown\",\n \"description\": \"Metal clothing rack with various garments\",\n \"categories\": [\"Furniture\", \"Storage\"],\n \"tags\": [\"rack\", \"clothes rack\", \"metal rack\"],\n \"visible_text\": \"\",\n \"material\": \"Metal\"\n },\n {\n \"index\": 4,\n \"title\": \"Various garments\",\n \"brand\": \"Multiple\",\n \"description\": \"Assorted outerwear garments including coats and jackets\",\n \"categories\": [\"Clothing\"],\n \"tags\": [\"clothing\", \"jackets\", \"coats\", \"outerwear\"],\n \"visible_text\": \"\",\n \"material\": \"Fabric\"\n },\n {\n \"index\": 5,\n \"title\": \"Garage sale sign\",\n \"brand\": \"Handmade\",\n \"description\": \"White sign with 'GARAGE SALE' painted in black\",\n \"categories\": [\"Signage\"],\n \"tags\": [\"sign\", \"garage sale\", \"advertisement\"],\n \"visible_text\": \"GARAGE SALE\",\n \"material\": \"Wood\"\n },\n {\n \"index\": 6,\n \"title\": \"Teddy bear\",\n \"brand\": \"Unknown\",\n \"description\": \"Brown teddy bear sitting on the table\",\n \"categories\": [\"Toys\"],\n \"tags\": [\"teddy bear\", \"plush\", \"toy\"],\n \"visible_text\": \"\",\n \"material\": \"Fabric\"\n },\n {\n \"index\": 7,\n \"title\": \"Old books\",\n \"brand\": \"Various\",\n \"description\": \"Stack of old, possibly vintage, hardcover books\",\n \"categories\": [\"Books\"],\n \"tags\": [\"books\", \"old books\", \"hardcover\"],\n \"visible_text\": \"\",\n \"material\": \"Paper\"\n },\n {\n \"index\": 8,\n \"title\": \"Old suitcases\",\n \"brand\": \"Unknown\",\n \"description\": \"Stack of two old, possibly vintage, suitcases\",\n \"categories\": [\"Travel Gear\"],\n \"tags\": [\"suitcases\", \"luggage\", \"vintage\"],\n \"visible_text\": \"\",\n \"material\": \"Leather\"\n },\n {\n \"index\": 9,\n \"title\": \"Watering can\",\n \"brand\": \"Unknown\",\n \"description\": \"Green plastic watering can\",\n \"categories\": [\"Gardening Equipment\"],\n \"tags\": [\"watering can\", \"gardening\", \"plastic can\"],\n \"visible_text\": \"\",\n \"material\": \"Plastic\"\n },\n {\n \"index\": 10,\n \"title\": \"Tennis racquets\",\n \"brand\": \"Unknown\",\n \"description\": \"Pair of old wooden tennis racquets\",\n \"categories\": [\"Sports Equipment\"],\n \"tags\": [\"tennis\", \"racquets\", \"sports\"],\n \"visible_text\": \"\",\n \"material\": \"Wood\"\n }\n ]\n}",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 933,
+    "completion_tokens": 835,
+    "total_tokens": 1768,
+    "prompt_tokens_details": { "cached_tokens": 0, "audio_tokens": 0 },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_7c63087da1"
+}

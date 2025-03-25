@@ -1,0 +1,85 @@
+{
+  "items": [
+    {
+      "type": "Clothing Rack",
+      "brand": "",
+      "name": "Metal Clothing Rack",
+      "description": "A metal clothing rack with various garments hanging, including jackets and shirts.",
+      "material": "Metal",
+      "categories": ["Apparel", "Furniture", "Outdoor"]
+    },
+    {
+      "type": "Barbecue Grill",
+      "brand": "",
+      "name": "Portable Barbecue Grill",
+      "description": "A red portable barbecue grill on a metal stand.",
+      "material": "Metal",
+      "categories": ["Cooking", "Outdoor", "Appliance"]
+    },
+    {
+      "type": "Rain Boots",
+      "brand": "",
+      "name": "Yellow Rain Boots",
+      "description": "A pair of bright yellow rain boots.",
+      "material": "Rubber",
+      "categories": ["Footwear", "Weather Gear", "Apparel"]
+    },
+    {
+      "type": "Suitcase",
+      "brand": "",
+      "name": "Vintage Brown Suitcase",
+      "description": "An old-fashioned brown suitcase.",
+      "material": "Leather",
+      "categories": ["Travel", "Storage", "Vintage"]
+    },
+    {
+      "type": "Table",
+      "brand": "",
+      "name": "Wooden Table with Items",
+      "description": "A wooden table displaying various items including books, toys, and household objects.",
+      "material": "Wood",
+      "categories": ["Furniture", "Display", "Woodwork"]
+    },
+    {
+      "type": "Sign",
+      "brand": "",
+      "name": "Garage Sale Sign",
+      "description": "A large sign with 'GARAGE SALE' written in bold, black letters.",
+      "material": "Wood",
+      "categories": ["Advertisement", "Signage"]
+    },
+    {
+      "type": "Teddy Bear",
+      "brand": "",
+      "name": "Stuffed Teddy Bear",
+      "description": "A plush teddy bear sitting on the table.",
+      "material": "Fabric",
+      "categories": ["Toys", "Children", "Plush"]
+    },
+    {
+      "type": "Watering Can",
+      "brand": "",
+      "name": "Green Watering Can",
+      "description": "A large green plastic watering can.",
+      "material": "Plastic",
+      "categories": ["Gardening", "Tools", "Outdoor"]
+    },
+    {
+      "type": "Tennis Rackets",
+      "brand": "",
+      "name": "Pair of Tennis Rackets",
+      "description": "Two vintage wooden tennis rackets.",
+      "material": "Wood",
+      "categories": ["Sports Equipment", "Tennis", "Vintage"]
+    },
+    {
+      "type": "Books",
+      "brand": "",
+      "name": "Assorted Books",
+      "description": "A stack of various hardcover books.",
+      "material": "Paper",
+      "categories": ["Reading", "Education", "Literature"]
+    }
+  ],
+  "visible_text": ["GARAGE SALE"]
+}
