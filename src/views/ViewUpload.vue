@@ -19,9 +19,6 @@ const { log } = useLogger()
 const settingsStore = useSettingsStore()
 
 const importImage: Ref<File> = ref(null!)
-const imageRecord: Ref<ParentImage> = ref(null!)
-const promptRecord: Ref<ChildPrompt> = ref(null!)
-const itemRecords: Ref<ChildItem[]> = ref([])
 const imageUrl: Ref<string | null> = ref(null)
 
 /**
@@ -58,9 +55,6 @@ async function processImage() {
       message: 'Processing Image',
     })
 
-    imageRecord.value = null!
-    promptRecord.value = null!
-    itemRecords.value = []
     imageUrl.value = URL.createObjectURL(importImage.value) // Set image URL
 
     const jsonPayload = {
@@ -100,6 +94,10 @@ async function processImage() {
       max_tokens: settingsStore.maxTokens as number,
     })
 
+    // Create initial records in the database
+    await DB.table(TableEnum.IMAGES).add(localImageRecord)
+    await DB.table(TableEnum.PROMPTS).add(localPromptRecord)
+
     log.info('Processing Image', {
       imageRecord: localImageRecord,
       promptRecord: localPromptRecord,
@@ -123,6 +121,13 @@ async function processImage() {
     localPromptRecord.response_data = data
     localPromptRecord.response_time = Date.now() - startTime
 
+    log.info('API Responsed', {
+      timeTaken: localPromptRecord.response_time,
+      jsonContent:
+        localPromptRecord?.response_data?.choices?.[0]?.message?.content ||
+        'NO DATA',
+    })
+
     // Process items from the response
     const localItemRecords = processResponseItems(
       localImageRecord,
@@ -130,8 +135,14 @@ async function processImage() {
     )
 
     // Store the updated records in the database
-    await DB.table(TableEnum.IMAGES).add(localImageRecord)
-    await DB.table(TableEnum.PROMPTS).add(localPromptRecord)
+    await DB.table(TableEnum.IMAGES).update(
+      localImageRecord.id,
+      localImageRecord,
+    )
+    await DB.table(TableEnum.PROMPTS).update(
+      localPromptRecord.id,
+      localPromptRecord,
+    )
     await DB.table(TableEnum.ITEMS).bulkAdd(localItemRecords)
 
     log.info('Image Processed', {
@@ -139,10 +150,6 @@ async function processImage() {
       promptId: localPromptRecord.id,
       itemsCount: localItemRecords.length,
     })
-
-    imageRecord.value = localImageRecord
-    promptRecord.value = localPromptRecord
-    itemRecords.value = localItemRecords
   } catch (error) {
     log.error('Error processing image', { error })
   } finally {
@@ -228,31 +235,6 @@ function processResponseItems(
           <q-item-label>
             <img :src="imageUrl" alt="Uploaded Image" style="max-width: 100%" />
           </q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item v-if="imageRecord" class="q-mb-sm">
-        <q-item-section top>
-          <q-item-label>Image Record</q-item-label>
-          <q-item-label>{{ imageRecord }}</q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item v-if="promptRecord" class="q-mb-sm">
-        <q-item-section top>
-          <q-item-label>Prompt Record</q-item-label>
-          <q-item-label>{{ promptRecord }}</q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item
-        v-for="(item, index) in itemRecords"
-        :key="item.id"
-        class="q-mb-sm"
-      >
-        <q-item-section top>
-          <q-item-label>Item Record {{ index + 1 }}</q-item-label>
-          <q-item-label>{{ item }}</q-item-label>
         </q-item-section>
       </q-item>
     </q-list>
