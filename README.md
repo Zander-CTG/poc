@@ -8,7 +8,13 @@ POC for Milestone #1
 
 ## Usage
 
-Local development.
+Install dependencies.
+
+```sh
+npm i
+```
+
+Local development server.
 
 ```sh
 npm run dev
