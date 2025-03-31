@@ -7,7 +7,7 @@ import { onUnmounted, ref, type Ref } from 'vue'
  */
 export default function useLiveQuery<T>(
   service: ServiceType,
-  methodName: 'liveDashboard' | 'liveTable',
+  methodName: 'liveTable',
 ) {
   const { log } = useLogger()
 
