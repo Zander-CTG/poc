@@ -1,4 +1,3 @@
-import DialogChartActivityLogs from '@/components/dialogs/chart/DialogChartActivityLogs.vue'
 import DialogInspect from '@/components/dialogs/DialogInspect.vue'
 import InspectItemDate from '@/components/dialogs/inspect/InspectItemDate.vue'
 import InspectItemObject from '@/components/dialogs/inspect/InspectItemObject.vue'
@@ -33,20 +32,12 @@ export class LogService extends BaseService {
     tableColumn('details', 'Details', 'JSON'),
   ]
   supportsColumnFilters = true
-  supportsActivityCharts = true
+  supportsActivityCharts = false
   supportsCharts = false
   supportsInspect = true
   supportsCreate = false
   supportsEdit = false
   supportsDelete = false
-
-  /**
-   * Returns QDialogOptions options for the chart dialog.
-   * @example $q.dialog(service.activityChartsDialogOptions(id))
-   */
-  activityChartsDialogOptions(): QDialogOptions {
-    return { component: DialogChartActivityLogs }
-  }
 
   /**
    * Returns QDialogOptions options for the inspect dialog.

@@ -32,15 +32,6 @@ export enum TableEnum {
   PROMPTS = 'prompts', // Child
 }
 
-/**
- * Status indicators used to modify how the app treats a record with it.
- */
-export enum StatusEnum {
-  LOCKED = 'Locked', // Shared - No user interaction allowed
-  HIDDEN = 'Hidden', // Parent
-  FAVORITED = 'Favorited', // Parent
-}
-
 export enum LimitEnum {
   MAX_TEXT_AREA = 300,
   MAX_TEXT_LINE = 50,

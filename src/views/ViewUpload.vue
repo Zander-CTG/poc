@@ -159,8 +159,7 @@ async function processImage() {
 }
 
 /**
- * Parses the API response and updates the image and prompt records.
- * Creates the item records based on API response.
+ * Parses the API response and creates the item records based on API response.
  */
 function processResponseItems(
   localImageRecord: ParentImage,
