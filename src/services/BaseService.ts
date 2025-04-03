@@ -1,4 +1,5 @@
 import { Setting } from '@/models/Setting'
+import { systemPrompt, userPrompt } from '@/shared/constants'
 import {
   DurationEnum,
   DurationMSEnum,
@@ -219,10 +220,8 @@ export abstract class BaseService {
         [SettingIdEnum.LOG_RETENTION_DURATION]:
           DurationEnum[DurationEnum['Six Months']],
         [SettingIdEnum.API_KEY]: 'NOT SET',
-        [SettingIdEnum.SYSTEM_PROMPT]:
-          'You are an AI that detects and identifies every distinct item in an image for an inventory and cataloging system. Do not summarize or group results. Your output response must always be a stringified JSON object. Dont include any text outside of the JSON.',
-        [SettingIdEnum.USER_PROMPT]:
-          'Analyze this image and return a stringified JSON object with every individual item in a root property called `items` with the following sub properties: `type` (what type of item is it), `brand` (item brand if known, empty string if not), `name` (descriptive name for the item), `description` (description of the item and its appearance), `material` (material the item is made of), and `catagories` (organizational catgories and tags that would apply to the item). Also include a `visible_text` root property on the JSON object that contains an array of strings of written text found in the image.',
+        [SettingIdEnum.SYSTEM_PROMPT]: systemPrompt,
+        [SettingIdEnum.USER_PROMPT]: userPrompt,
         [SettingIdEnum.MAX_TOKENS]: 1024,
         [SettingIdEnum.MODEL_NAME]: 'gpt-4-turbo',
       }

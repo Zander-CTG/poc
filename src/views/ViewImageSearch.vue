@@ -30,7 +30,7 @@ const tableColumns = [
   tableColumn('type', 'Type', 'TEXT'),
   tableColumn('categories', 'Categories', 'LONG-LIST-PRINT'),
   tableColumn('brand', 'Brand', 'TEXT'),
-  tableColumn('name', 'Name', 'TEXT'),
+  tableColumn('label', 'Label', 'TEXT'),
   tableColumn('description', 'Description', 'LONG-TEXT'),
 ]
 const columnOptions: Ref<QTableColumn[]> = ref(

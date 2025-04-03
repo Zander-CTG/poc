@@ -165,12 +165,12 @@ function processResponseItems(
   localImageRecord: ParentImage,
   localPromptRecord: ChildPrompt,
 ) {
-  // Having to trim the tick marks since the response may or may not include them
+  // Having to trim the response content to get the JSON object
   const responseContent =
     localPromptRecord.response_data?.choices?.[0]?.message?.content
-  const trimmedContent = responseContent
-    .replace(/^```json/, '')
-    .replace(/```$/, '')
+  const startIndex = responseContent.indexOf('{')
+  const endIndex = responseContent.lastIndexOf('}')
+  const trimmedContent = responseContent.substring(startIndex, endIndex + 1)
   const parsedContent = JSON.parse(trimmedContent) as Record<string, any>
 
   const items = parsedContent?.items || []
@@ -184,7 +184,7 @@ function processResponseItems(
       image_id: localImageRecord.id,
       type: item?.type || undefined,
       brand: item?.brand || undefined,
-      name: item?.title || undefined,
+      label: item?.label || undefined,
       description: item?.description || undefined,
       categories: item?.categories || [],
     })
@@ -230,7 +230,6 @@ function processResponseItems(
 
       <q-item v-if="imageUrl" class="q-mb-sm">
         <q-item-section top>
-          <q-item-label>Uploaded Image</q-item-label>
           <q-item-label>
             <img :src="imageUrl" alt="Uploaded Image" style="max-width: 100%" />
           </q-item-label>
