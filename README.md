@@ -2,10 +2,6 @@
 
 POC for Milestone #1
 
-## Todos
-
-- Clean-up/WIP
-
 ## Usage
 
 Install dependencies.
