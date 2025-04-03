@@ -8,7 +8,7 @@ interface ChildItemParams {
   image_id: IdType // Parent reference required, never defaulted
   type?: string
   brand?: string
-  name?: string
+  label?: string
   description?: string
   categories?: string[]
 }
@@ -22,7 +22,7 @@ export class ChildItem {
   image_id: IdType
   type?: string
   brand?: string
-  name?: string
+  label?: string
   description?: string
   categories?: string[]
 
@@ -32,7 +32,7 @@ export class ChildItem {
     this.image_id = params.image_id // Parent reference required, never defaulted
     this.type = params.type ?? undefined
     this.brand = params.brand ?? undefined
-    this.name = params.name ?? undefined
+    this.label = params.label ?? undefined
     this.description = params.description ?? undefined
     this.categories = params.categories ?? []
   }

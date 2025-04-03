@@ -13,7 +13,7 @@ import {
 import useLogger from '@/use/useLogger'
 import useRouting from '@/use/useRouting'
 import { liveQuery } from 'dexie'
-import { useMeta, type QTableColumn } from 'quasar'
+import { extend, useMeta, type QTableColumn } from 'quasar'
 import { onUnmounted, ref, type Ref } from 'vue'
 
 useMeta({ title: `${appName} - Data Table` })
@@ -30,7 +30,7 @@ const tableColumns = [
   tableColumn('type', 'Type', 'TEXT'),
   tableColumn('categories', 'Categories', 'LONG-LIST-PRINT'),
   tableColumn('brand', 'Brand', 'TEXT'),
-  tableColumn('name', 'Name', 'TEXT'),
+  tableColumn('label', 'Label', 'TEXT'),
   tableColumn('description', 'Description', 'LONG-TEXT'),
 ]
 const columnOptions: Ref<QTableColumn[]> = ref(
@@ -48,6 +48,15 @@ const subscription = liveQuery(() =>
   next: (data: ChildItem[]) => (liveData.value = data),
   error: (error) => log.error('Error fetching live Items', error),
 })
+
+/**
+ * Handles the click event on a row in the table. This function must deep copy the ref to work.
+ */
+const handleRowClick = (row: ChildItem) => {
+  const item = extend(true, {}, row) as ChildItem
+  const label = item?.label || 'No Label'
+  log.info(label, { item })
+}
 
 onUnmounted(() => {
   subscription.unsubscribe()
@@ -79,7 +88,7 @@ onUnmounted(() => {
     </template>
 
     <template v-slot:body="props">
-      <q-tr :props="props">
+      <q-tr :props="props" @click="handleRowClick(props.row)">
         <q-td v-for="col in props.cols" :key="col.name" :props="props">
           {{ col.value }}
         </q-td>

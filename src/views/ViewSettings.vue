@@ -5,7 +5,7 @@ import PageResponsive from '@/components/page/PageResponsive.vue'
 import { DB } from '@/services/db'
 import { LogSI } from '@/services/LogService'
 import { SettingSI } from '@/services/SettingService'
-import { appName } from '@/shared/constants'
+import { appName, systemPrompt, userPrompt } from '@/shared/constants'
 import {
   DurationEnum,
   RouteNameEnum,
@@ -19,6 +19,7 @@ import {
   deleteXIcon,
   logsTableIcon,
   optionsIcon,
+  refreshIcon,
   settingsTableIcon,
   warnIcon,
 } from '@/shared/icons'
@@ -206,7 +207,20 @@ function onDeleteDatabase() {
               dense
               outlined
               color="primary"
-            />
+            >
+              <template v-slot:append>
+                <q-icon
+                  @click="
+                    SettingSI.putRecord({
+                      id: SettingIdEnum.SYSTEM_PROMPT,
+                      value: systemPrompt,
+                    })
+                  "
+                  class="cursor-pointer"
+                  :name="refreshIcon"
+                />
+              </template>
+            </q-input>
           </q-item-label>
         </q-item-section>
       </q-item>
@@ -229,7 +243,20 @@ function onDeleteDatabase() {
               dense
               outlined
               color="primary"
-            />
+            >
+              <template v-slot:append>
+                <q-icon
+                  @click="
+                    SettingSI.putRecord({
+                      id: SettingIdEnum.USER_PROMPT,
+                      value: userPrompt,
+                    })
+                  "
+                  class="cursor-pointer"
+                  :name="refreshIcon"
+                />
+              </template>
+            </q-input>
           </q-item-label>
         </q-item-section>
       </q-item>

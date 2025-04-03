@@ -41,6 +41,7 @@ import {
   symRoundedPublish,
   symRoundedRecommend,
   symRoundedRedeem,
+  symRoundedRefresh,
   symRoundedSave,
   symRoundedSchedule,
   symRoundedSearch,
@@ -123,3 +124,4 @@ export const imageIcon = symRoundedImage
 export const imageSearchIcon = symRoundedImageSearch
 export const disabledVisibleIcon = symRoundedDisabledVisible
 export const itemsIcon = symRoundedCategory
+export const refreshIcon = symRoundedRefresh
