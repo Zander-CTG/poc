@@ -33,7 +33,7 @@ const isDesktop = computed(() => $q.screen.gt.xs)
           exact
           :to="{ name: RouteNameEnum.UPLOAD }"
         >
-          <template v-if="isDesktop">Add Item</template>
+          <template v-if="isDesktop">Add Items</template>
         </q-route-tab>
 
         <q-route-tab
