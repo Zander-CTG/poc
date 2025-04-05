@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DialogInspectItem from '@/components/dialogs/DialogInspectItem.vue'
 import type { ChildItem } from '@/models/Item'
 import { DB } from '@/services/db'
 import { appName } from '@/shared/constants'
@@ -13,7 +14,7 @@ import {
 import useLogger from '@/use/useLogger'
 import useRouting from '@/use/useRouting'
 import { liveQuery } from 'dexie'
-import { extend, useMeta, type QTableColumn } from 'quasar'
+import { useMeta, type QTableColumn } from 'quasar'
 import { onUnmounted, ref, type Ref } from 'vue'
 
 useMeta({ title: `${appName} - Data Table` })
@@ -49,15 +50,6 @@ const subscription = liveQuery(() =>
   error: (error) => log.error('Error fetching live Items', error),
 })
 
-/**
- * Handles the click event on a row in the table. This function must deep copy the ref to work.
- */
-const handleRowClick = (row: ChildItem) => {
-  const item = extend(true, {}, row) as ChildItem
-  const label = item?.label || 'No Label'
-  log.info(label, { item })
-}
-
 onUnmounted(() => {
   subscription.unsubscribe()
 })
@@ -88,7 +80,16 @@ onUnmounted(() => {
     </template>
 
     <template v-slot:body="props">
-      <q-tr :props="props" @click="handleRowClick(props.row)">
+      <q-tr
+        :props="props"
+        @click="
+          () =>
+            $q.dialog({
+              component: DialogInspectItem,
+              componentProps: { id: props?.row?.id },
+            })
+        "
+      >
         <q-td v-for="col in props.cols" :key="col.name" :props="props">
           {{ col.value }}
         </q-td>

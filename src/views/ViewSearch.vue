@@ -23,9 +23,9 @@ useMeta({ title: `${appName} - Search` })
       <q-item class="q-mb-md row">
         <div class="col" />
         <q-btn
-          class="col-8"
+          class="col-5"
           :icon="imageSearchIcon"
-          label="Image Search"
+          label="Images"
           noCaps
           stack
           glossy
@@ -34,14 +34,10 @@ useMeta({ title: `${appName} - Search` })
           :to="{ name: RouteNameEnum.IMAGE_SEARCH }"
         />
         <div class="col" />
-      </q-item>
-
-      <q-item class="q-mb-md row">
-        <div class="col" />
         <q-btn
-          class="col-8"
+          class="col-5"
           :icon="inspectIcon"
-          label="Tabular Search"
+          label="Items"
           noCaps
           stack
           glossy
