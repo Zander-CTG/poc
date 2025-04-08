@@ -222,7 +222,7 @@ export abstract class BaseService {
         [SettingIdEnum.API_KEY]: 'NOT SET',
         [SettingIdEnum.SYSTEM_PROMPT]: systemPrompt,
         [SettingIdEnum.USER_PROMPT]: userPrompt,
-        [SettingIdEnum.MAX_TOKENS]: 1024,
+        [SettingIdEnum.MAX_TOKENS]: 2048,
         [SettingIdEnum.MODEL_NAME]: 'gpt-4-turbo',
       }
 

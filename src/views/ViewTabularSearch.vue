@@ -56,40 +56,24 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <q-table
-    fullscreen
-    :rows="liveData"
-    :columns="tableColumns"
-    :visible-columns="visibleColumns"
-    :rows-per-page-options="[0]"
-    :filter="searchFilter"
-    virtual-scroll
-    row-key="id"
-  >
+  <q-table fullscreen :rows="liveData" :columns="tableColumns" :visible-columns="visibleColumns"
+    :rows-per-page-options="[0]" :filter="searchFilter" virtual-scroll row-key="id">
     <template v-slot:header="props">
       <q-tr :props="props">
-        <q-th
-          v-for="col in props.cols"
-          v-show="col.name !== 'hidden'"
-          :key="col.name"
-          :props="props"
-        >
+        <q-th v-for="col in props.cols" v-show="col.name !== 'hidden'" :key="col.name" :props="props">
           {{ col.label }}
         </q-th>
       </q-tr>
     </template>
 
     <template v-slot:body="props">
-      <q-tr
-        :props="props"
-        @click="
-          () =>
-            $q.dialog({
-              component: DialogInspectItem,
-              componentProps: { id: props?.row?.id },
-            })
-        "
-      >
+      <q-tr :props="props" @click="
+        () =>
+          $q.dialog({
+            component: DialogInspectItem,
+            componentProps: { id: props?.row?.id },
+          })
+      ">
         <q-td v-for="col in props.cols" :key="col.name" :props="props">
           {{ col.value }}
         </q-td>
@@ -100,43 +84,18 @@ onUnmounted(() => {
       <div class="row justify-start full-width q-mb-md">
         <div class="col-10 text-h6 text-bold ellipsis">
           <q-icon class="q-pb-xs q-mr-xs" :name="itemsIcon" />
-          Tabular Items
+          Items
         </div>
 
-        <q-btn
-          round
-          flat
-          class="absolute-top-right q-mr-sm q-mt-sm"
-          :icon="closeIcon"
-          @click="goBack"
-        />
+        <q-btn round flat class="absolute-top-right q-mr-sm q-mt-sm" :icon="closeIcon" @click="goBack" />
       </div>
 
       <div class="row justify-start full-width">
-        <q-input
-          :disable="!liveData.length"
-          outlined
-          dense
-          clearable
-          debounce="300"
-          v-model="searchFilter"
-          placeholder="Search"
-          class="full-width"
-        >
+        <q-input :disable="!liveData.length" outlined dense clearable debounce="300" v-model="searchFilter"
+          placeholder="Search" class="full-width">
           <template v-slot:after>
-            <q-select
-              v-model="visibleColumns"
-              :options="columnOptions"
-              :disable="!liveData.length"
-              multiple
-              dense
-              options-dense
-              emit-value
-              map-options
-              option-value="name"
-              display-value=""
-              bg-color="primary"
-            >
+            <q-select v-model="visibleColumns" :options="columnOptions" :disable="!liveData.length" multiple dense
+              options-dense emit-value map-options option-value="name" display-value="" bg-color="primary">
               <template v-slot:append>
                 <q-icon color="white" :name="columnsIcon" />
               </template>

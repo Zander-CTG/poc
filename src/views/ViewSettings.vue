@@ -134,31 +134,28 @@ function onDeleteDatabase() {
 
 <template>
   <PageResponsive>
-    <PageFabMenu
-      :isLoading="$q.loading.isActive"
-      :subButtons="[
-        {
-          label: 'Logs Data',
-          color: 'secondary',
-          icon: logsTableIcon,
-          handleClick: () =>
-            router.push({
-              name: RouteNameEnum.TABLE,
-              params: { table: TableEnum.LOGS },
-            }),
-        },
-        {
-          label: 'Settings Data',
-          color: 'secondary',
-          icon: settingsTableIcon,
-          handleClick: () =>
-            router.push({
-              name: RouteNameEnum.TABLE,
-              params: { table: TableEnum.SETTINGS },
-            }),
-        },
-      ]"
-    />
+    <PageFabMenu :isLoading="$q.loading.isActive" :subButtons="[
+      {
+        label: 'Logs Data',
+        color: 'secondary',
+        icon: logsTableIcon,
+        handleClick: () =>
+          router.push({
+            name: RouteNameEnum.TABLE,
+            params: { table: TableEnum.LOGS },
+          }),
+      },
+      {
+        label: 'Settings Data',
+        color: 'secondary',
+        icon: settingsTableIcon,
+        handleClick: () =>
+          router.push({
+            name: RouteNameEnum.TABLE,
+            params: { table: TableEnum.SETTINGS },
+          }),
+      },
+    ]" />
 
     <q-list padding>
       <q-item-label header>
@@ -170,21 +167,12 @@ function onDeleteDatabase() {
         <q-item-section top>
           <q-item-label>API Key</q-item-label>
           <q-item-label>
-            <q-input
-              :model-value="settingsStore.apiKey as string"
-              @update:model-value="
-                SettingSI.putRecord({
-                  id: SettingIdEnum.API_KEY,
-                  value: $event,
-                })
-              "
-              type="textarea"
-              lazy-rules
-              autogrow
-              dense
-              outlined
-              color="primary"
-            />
+            <q-input :model-value="settingsStore.apiKey as string" @update:model-value="
+              SettingSI.putRecord({
+                id: SettingIdEnum.API_KEY,
+                value: $event,
+              })
+              " type="textarea" lazy-rules autogrow dense outlined color="primary" />
           </q-item-label>
         </q-item-section>
       </q-item>
@@ -193,32 +181,19 @@ function onDeleteDatabase() {
         <q-item-section top>
           <q-item-label>System Prompt</q-item-label>
           <q-item-label>
-            <q-input
-              :model-value="settingsStore.systemPrompt as string"
-              @update:model-value="
-                SettingSI.putRecord({
-                  id: SettingIdEnum.SYSTEM_PROMPT,
-                  value: $event,
-                })
-              "
-              type="textarea"
-              lazy-rules
-              autogrow
-              dense
-              outlined
-              color="primary"
-            >
+            <q-input :model-value="settingsStore.systemPrompt as string" @update:model-value="
+              SettingSI.putRecord({
+                id: SettingIdEnum.SYSTEM_PROMPT,
+                value: $event,
+              })
+              " type="textarea" lazy-rules autogrow dense outlined color="primary">
               <template v-slot:append>
-                <q-icon
-                  @click="
-                    SettingSI.putRecord({
-                      id: SettingIdEnum.SYSTEM_PROMPT,
-                      value: systemPrompt,
-                    })
-                  "
-                  class="cursor-pointer"
-                  :name="refreshIcon"
-                />
+                <q-icon @click="
+                  SettingSI.putRecord({
+                    id: SettingIdEnum.SYSTEM_PROMPT,
+                    value: systemPrompt,
+                  })
+                  " class="cursor-pointer" :name="refreshIcon" />
               </template>
             </q-input>
           </q-item-label>
@@ -229,32 +204,19 @@ function onDeleteDatabase() {
         <q-item-section top>
           <q-item-label>User Prompt</q-item-label>
           <q-item-label>
-            <q-input
-              :model-value="settingsStore.userPrompt as string"
-              @update:model-value="
-                SettingSI.putRecord({
-                  id: SettingIdEnum.USER_PROMPT,
-                  value: $event,
-                })
-              "
-              type="textarea"
-              lazy-rules
-              autogrow
-              dense
-              outlined
-              color="primary"
-            >
+            <q-input :model-value="settingsStore.userPrompt as string" @update:model-value="
+              SettingSI.putRecord({
+                id: SettingIdEnum.USER_PROMPT,
+                value: $event,
+              })
+              " type="textarea" lazy-rules autogrow dense outlined color="primary">
               <template v-slot:append>
-                <q-icon
-                  @click="
-                    SettingSI.putRecord({
-                      id: SettingIdEnum.USER_PROMPT,
-                      value: userPrompt,
-                    })
-                  "
-                  class="cursor-pointer"
-                  :name="refreshIcon"
-                />
+                <q-icon @click="
+                  SettingSI.putRecord({
+                    id: SettingIdEnum.USER_PROMPT,
+                    value: userPrompt,
+                  })
+                  " class="cursor-pointer" :name="refreshIcon" />
               </template>
             </q-input>
           </q-item-label>
@@ -265,21 +227,15 @@ function onDeleteDatabase() {
         <q-item-section top>
           <q-item-label>Max Tokens</q-item-label>
           <q-item-label>
-            <q-select
-              :model-value="(settingsStore.maxTokens as number) ?? 1024"
-              @update:model-value="
-                SettingSI.putRecord({
-                  id: SettingIdEnum.MAX_TOKENS,
-                  value: Number($event),
-                })
-              "
-              :options="[
+            <q-select :model-value="(settingsStore.maxTokens as number) ?? 2048" @update:model-value="
+              SettingSI.putRecord({
+                id: SettingIdEnum.MAX_TOKENS,
+                value: Number($event),
+              })
+              " :options="[
                 1,
                 ...Array.from({ length: 32 }, (_, i) => (i + 1) * 128),
-              ]"
-              dense
-              outlined
-            />
+              ]" dense outlined />
           </q-item-label>
         </q-item-section>
       </q-item>
@@ -288,20 +244,13 @@ function onDeleteDatabase() {
         <q-item-section top>
           <q-item-label>Model Name</q-item-label>
           <q-item-label>
-            <q-select
-              :model-value="
-                (settingsStore.modelName as string) ?? 'gpt-4-turbo'
-              "
-              @update:model-value="
+            <q-select :model-value="(settingsStore.modelName as string) ?? 'gpt-4-turbo'
+              " @update:model-value="
                 SettingSI.putRecord({
                   id: SettingIdEnum.MODEL_NAME,
                   value: Number($event),
                 })
-              "
-              :options="modelOptions"
-              dense
-              outlined
-            />
+                " :options="modelOptions" dense outlined />
           </q-item-label>
         </q-item-section>
       </q-item>
@@ -322,17 +271,12 @@ function onDeleteDatabase() {
         </q-item-section>
 
         <q-item-section side>
-          <q-toggle
-            :model-value="settingsStore.instructionsOverlay"
-            @update:model-value="
-              SettingSI.putRecord({
-                id: SettingIdEnum.INSTRUCTIONS_OVERLAY,
-                value: $event,
-              })
-            "
-            :disable="$q.loading.isActive"
-            size="lg"
-          />
+          <q-toggle :model-value="settingsStore.instructionsOverlay" @update:model-value="
+            SettingSI.putRecord({
+              id: SettingIdEnum.INSTRUCTIONS_OVERLAY,
+              value: $event,
+            })
+            " :disable="$q.loading.isActive" size="lg" />
         </q-item-section>
       </q-item>
 
@@ -345,17 +289,12 @@ function onDeleteDatabase() {
         </q-item-section>
 
         <q-item-section side>
-          <q-toggle
-            :model-value="settingsStore.infoMessages"
-            @update:model-value="
-              SettingSI.putRecord({
-                id: SettingIdEnum.INFO_MESSAGES,
-                value: $event,
-              })
-            "
-            :disable="$q.loading.isActive"
-            size="lg"
-          />
+          <q-toggle :model-value="settingsStore.infoMessages" @update:model-value="
+            SettingSI.putRecord({
+              id: SettingIdEnum.INFO_MESSAGES,
+              value: $event,
+            })
+            " :disable="$q.loading.isActive" size="lg" />
         </q-item-section>
       </q-item>
 
@@ -368,17 +307,12 @@ function onDeleteDatabase() {
         </q-item-section>
 
         <q-item-section side>
-          <q-toggle
-            :model-value="settingsStore.consoleLogs"
-            @update:model-value="
-              SettingSI.putRecord({
-                id: SettingIdEnum.CONSOLE_LOGS,
-                value: $event,
-              })
-            "
-            :disable="$q.loading.isActive"
-            size="lg"
-          />
+          <q-toggle :model-value="settingsStore.consoleLogs" @update:model-value="
+            SettingSI.putRecord({
+              id: SettingIdEnum.CONSOLE_LOGS,
+              value: $event,
+            })
+            " :disable="$q.loading.isActive" size="lg" />
         </q-item-section>
       </q-item>
 
@@ -391,21 +325,13 @@ function onDeleteDatabase() {
         </q-item-section>
 
         <q-item-section side>
-          <q-select
-            :model-value="settingsStore.logRetentionDuration"
-            @update:model-value="
-              SettingSI.putRecord({
-                id: SettingIdEnum.LOG_RETENTION_DURATION,
-                value: $event,
-              })
-            "
-            :disable="$q.loading.isActive"
-            :options="logDurationsOptions"
-            dense
-            outlined
-            label="Duration"
-            class="duration-width"
-          />
+          <q-select :model-value="settingsStore.logRetentionDuration" @update:model-value="
+            SettingSI.putRecord({
+              id: SettingIdEnum.LOG_RETENTION_DURATION,
+              value: $event,
+            })
+            " :disable="$q.loading.isActive" :options="logDurationsOptions" dense outlined label="Duration"
+            class="duration-width" />
         </q-item-section>
       </q-item>
 
@@ -431,12 +357,7 @@ function onDeleteDatabase() {
       </q-item>
 
       <q-item class="q-mb-sm">
-        <q-btn
-          :icon="deleteIcon"
-          :disable="$q.loading.isActive"
-          color="negative"
-          @click="onDeleteLogs()"
-        />
+        <q-btn :icon="deleteIcon" :disable="$q.loading.isActive" color="negative" @click="onDeleteLogs()" />
       </q-item>
 
       <q-item>
@@ -449,12 +370,7 @@ function onDeleteDatabase() {
       </q-item>
 
       <q-item class="q-mb-sm">
-        <q-btn
-          :icon="deleteXIcon"
-          :disable="$q.loading.isActive"
-          color="negative"
-          @click="onDeleteData()"
-        />
+        <q-btn :icon="deleteXIcon" :disable="$q.loading.isActive" color="negative" @click="onDeleteData()" />
       </q-item>
 
       <q-item>
@@ -469,12 +385,7 @@ function onDeleteDatabase() {
       </q-item>
 
       <q-item>
-        <q-btn
-          :icon="deleteSweepIcon"
-          :disable="$q.loading.isActive"
-          color="negative"
-          @click="onDeleteDatabase()"
-        />
+        <q-btn :icon="deleteSweepIcon" :disable="$q.loading.isActive" color="negative" @click="onDeleteDatabase()" />
       </q-item>
     </q-list>
   </PageResponsive>
