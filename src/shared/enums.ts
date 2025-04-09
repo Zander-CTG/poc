@@ -89,6 +89,8 @@ export enum SettingIdEnum {
   USER_PROMPT = 'User Prompt',
   MAX_TOKENS = 'Max Tokens',
   MODEL_NAME = 'Model Name',
+  PROJECT_URL = 'Project URL',
+  PROJECT_API_KEY = 'Project API Key',
 }
 
 //
