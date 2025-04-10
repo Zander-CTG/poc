@@ -63,5 +63,15 @@ export const useSettingsStore = defineStore({
         (s: SettingType) => s.id === SettingIdEnum.MODEL_NAME,
       )?.value
     },
+    projectUrl: (state) => {
+      return state.settings.find(
+        (s: SettingType) => s.id === SettingIdEnum.PROJECT_URL,
+      )?.value
+    },
+    projectApiKey: (state) => {
+      return state.settings.find(
+        (s: SettingType) => s.id === SettingIdEnum.PROJECT_API_KEY,
+      )?.value
+    },
   },
 })

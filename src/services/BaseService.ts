@@ -224,6 +224,8 @@ export abstract class BaseService {
         [SettingIdEnum.USER_PROMPT]: userPrompt,
         [SettingIdEnum.MAX_TOKENS]: 2048,
         [SettingIdEnum.MODEL_NAME]: 'gpt-4-turbo',
+        [SettingIdEnum.PROJECT_URL]: 'NOT SET',
+        [SettingIdEnum.PROJECT_API_KEY]: 'NOT SET',
       }
 
       const settingids = Object.values(SettingIdEnum)
