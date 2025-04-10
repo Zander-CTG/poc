@@ -151,7 +151,7 @@ async function processImage() {
       itemsCount: localItemRecords.length,
     })
   } catch (error) {
-    log.error('Error processing image', { error })
+    log.error('Error processing image', error as Error)
   } finally {
     importImage.value = null!
     $q.loading.hide()

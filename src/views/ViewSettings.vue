@@ -163,12 +163,58 @@ function onDeleteDatabase() {
     <q-list padding>
       <q-item-label header>
         <q-icon class="on-left" size="sm" :name="apiIcon" />
-        API
+        Backend
       </q-item-label>
 
       <q-item>
         <q-item-section top>
-          <q-item-label>API Key</q-item-label>
+          <q-item-label>Project API Key</q-item-label>
+          <q-item-label>
+            <q-input
+              :model-value="settingsStore.projectApiKey as string"
+              @update:model-value="
+                SettingSI.putRecord({
+                  id: SettingIdEnum.PROJECT_API_KEY,
+                  value: $event,
+                })
+              "
+              type="textarea"
+              lazy-rules
+              autogrow
+              dense
+              outlined
+              color="primary"
+            />
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item>
+        <q-item-section top>
+          <q-item-label>Project URL</q-item-label>
+          <q-item-label>
+            <q-input
+              :model-value="settingsStore.projectUrl as string"
+              @update:model-value="
+                SettingSI.putRecord({
+                  id: SettingIdEnum.PROJECT_URL,
+                  value: $event,
+                })
+              "
+              type="textarea"
+              lazy-rules
+              autogrow
+              dense
+              outlined
+              color="primary"
+            />
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item>
+        <q-item-section top>
+          <q-item-label>AI API Key</q-item-label>
           <q-item-label>
             <q-input
               :model-value="settingsStore.apiKey as string"
