@@ -9,6 +9,7 @@ import { TableEnum } from '@/shared/enums'
 import { importFileIcon } from '@/shared/icons'
 import { useSettingsStore } from '@/stores/settings'
 import useLogger from '@/use/useLogger'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { QSpinnerGears, useMeta, useQuasar } from 'quasar'
 import { ref, type Ref } from 'vue'
 
@@ -43,6 +44,40 @@ async function getBase64(file: File): Promise<string | null> {
     reader.onerror = (error) => reject(error)
     reader.readAsDataURL(file)
   })
+}
+
+/**
+ * Test using Supabase
+ */
+async function uploadImage(file: File) {
+  let supabase: SupabaseClient = null!
+
+  // Connect to Supabase
+  try {
+    supabase = createClient(
+      settingsStore.projectUrl as string,
+      settingsStore.projectApiKey as string,
+    )
+  } catch (error) {
+    log.error('Supabase settings missing', error as Error)
+  }
+
+  // TODO: Must have an authenticated user to upload files
+
+  const fileName = `${Date.now()}-${file.name}`
+  const { data, error } = await supabase.storage
+    .from('uploaded-images')
+    .upload(fileName, file)
+
+  if (error) {
+    log.error('Failed to upload', error as Error)
+    log.error('data', data || {})
+    throw new Error(`Failed to upload: ${error.message}`)
+  }
+
+  // Close Supabase connection
+  supabase.removeAllChannels()
+  supabase.auth.signOut()
 }
 
 /**
@@ -150,6 +185,9 @@ async function processImage() {
       promptId: localPromptRecord.id,
       itemsCount: localItemRecords.length,
     })
+
+    // Supabase image upload
+    await uploadImage(importImage.value)
   } catch (error) {
     log.error('Error processing image', error as Error)
   } finally {
