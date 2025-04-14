@@ -6,7 +6,6 @@ import useLogger from '@/use/useLogger'
 import { colors, useMeta, useQuasar } from 'quasar'
 import { onMounted, onUnmounted } from 'vue'
 import { RouterView } from 'vue-router'
-import DialogLoginOverlay from './components/dialogs/DialogLoginOverlay.vue'
 import { DB } from './services/db'
 
 /**
@@ -85,6 +84,5 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <DialogLoginOverlay />
   <RouterView />
 </template>

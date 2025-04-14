@@ -57,18 +57,20 @@ export class Database extends Dexie {
     const defaultSettings: {
       [key in SettingIdEnum]: SettingValueType
     } = {
+      [SettingIdEnum.USER_EMAIL]: '',
+      [SettingIdEnum.USER_PASSWORD]: '',
       [SettingIdEnum.LOGIN_OVERLAY]: true,
       [SettingIdEnum.CONSOLE_LOGS]: false,
       [SettingIdEnum.INFO_MESSAGES]: true,
       [SettingIdEnum.LOG_RETENTION_DURATION]:
         DurationEnum[DurationEnum['Six Months']],
-      [SettingIdEnum.API_KEY]: 'NOT SET',
+      [SettingIdEnum.API_KEY]: '',
       [SettingIdEnum.SYSTEM_PROMPT]: systemPrompt,
       [SettingIdEnum.USER_PROMPT]: userPrompt,
       [SettingIdEnum.MAX_TOKENS]: 2048,
       [SettingIdEnum.MODEL_NAME]: 'gpt-4-turbo',
-      [SettingIdEnum.PROJECT_URL]: 'NOT SET',
-      [SettingIdEnum.PROJECT_API_KEY]: 'NOT SET',
+      [SettingIdEnum.PROJECT_URL]: '',
+      [SettingIdEnum.PROJECT_API_KEY]: '',
     }
 
     const settingids = Object.values(SettingIdEnum)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import NewlinedTextArea from '@/components/dashboard/NewlinedTextArea.vue'
+import NewlinedTextArea from '@/components/dialogs/inspect/NewlinedTextArea.vue'
 import { useRecordStore } from '@/stores/record'
 import { computed } from 'vue'
 import BaseInspectItem from './BaseInspectItem.vue'

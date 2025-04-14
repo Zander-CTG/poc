@@ -129,3 +129,4 @@ export const itemsIcon = symRoundedCategory
 export const refreshIcon = symRoundedRefresh
 export const manageSettingsIcon = symRoundedManageAccounts
 export const personIcon = symRoundedPerson
+export const keyIcon = symRoundedKey

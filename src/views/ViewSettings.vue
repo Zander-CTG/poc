@@ -2,8 +2,6 @@
 import DialogConfirm from '@/components/dialogs/DialogConfirm.vue'
 import PageResponsive from '@/components/page/PageResponsive.vue'
 import { DB } from '@/services/db'
-import { LogSI } from '@/services/LogService'
-import { SettingSI } from '@/services/SettingService'
 import { appName, systemPrompt, userPrompt } from '@/shared/constants'
 import {
   DurationEnum,
@@ -17,6 +15,7 @@ import {
   deleteIcon,
   deleteSweepIcon,
   deleteXIcon,
+  keyIcon,
   logsTableIcon,
   optionsIcon,
   personIcon,
@@ -24,9 +23,11 @@ import {
   settingsTableIcon,
   warnIcon,
 } from '@/shared/icons'
+import { useBackend } from '@/stores/backend'
 import { useSettingsStore } from '@/stores/settings'
 import useLogger from '@/use/useLogger'
-import { useMeta, useQuasar } from 'quasar'
+import { createClient } from '@supabase/supabase-js'
+import { QSpinnerGears, useMeta, useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 
 useMeta({ title: `${appName} - Settings` })
@@ -35,9 +36,9 @@ const $q = useQuasar()
 const router = useRouter()
 const { log } = useLogger()
 const settingsStore = useSettingsStore()
+const backendStore = useBackend()
 
 const modelOptions = ['gpt-4-turbo']
-
 const logDurationsOptions = [
   DurationEnum['One Week'],
   DurationEnum['One Month'],
@@ -63,7 +64,7 @@ function onDeleteLogs() {
   }).onOk(async () => {
     try {
       $q.loading.show()
-      await LogSI.clearTable()
+      await DB.table(TableEnum.LOGS).clear()
       log.info('Successfully deleted Logs')
     } catch (error) {
       log.error(`Error deleting Logs`, error as Error)
@@ -91,7 +92,7 @@ function onDeleteData() {
       $q.loading.show()
       const tables = Object.values(TableEnum)
       await Promise.all(tables.map(async (table) => DB.table(table).clear()))
-      await SettingSI.initialize() // Re-initialize settings immediately
+      await DB.initializeSettingsOnStartup() // Re-initialize settings immediately
       log.info('Successfully deleted data')
     } catch (error) {
       log.error(`Error deleting data`, error as Error)
@@ -131,6 +132,49 @@ function onDeleteDatabase() {
     }
   })
 }
+
+/**
+ * Authenticates the user with Supabase with the provided credentials.
+ */
+async function onAuthenticate() {
+  $q.loading.show({
+    spinner: QSpinnerGears,
+    message: 'Authenticating',
+  })
+
+  const projectUrl = settingsStore.projectUrl as string
+  const projectApiKey = settingsStore.projectApiKey as string
+  const email = settingsStore.userEmail as string
+  const password = settingsStore.userPassword as string
+
+  try {
+    // All required values for connecting to the backend
+    if (!projectUrl) {
+      log.error('Project URL is missing')
+    } else if (!projectApiKey) {
+      log.error('Project API Key is missing')
+    } else if (!email) {
+      log.error('User email is missing')
+    } else if (!password) {
+      log.error('User password is missing')
+    } else {
+      // Connect to Supabase
+      backendStore.supabase = createClient(projectUrl, projectApiKey)
+      await backendStore.supabase.auth.signOut() // Sign out any existing user
+      const user = await backendStore.supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      log.info('User authenticated successfully', { user: user.data.user })
+      // Store user
+      backendStore.user = user.data.user
+    }
+  } catch (error) {
+    log.error('Error during authentication', error as Error)
+  } finally {
+    $q.loading.hide()
+  }
+}
 </script>
 
 <template>
@@ -146,16 +190,15 @@ function onDeleteDatabase() {
           <q-item-label>Email</q-item-label>
           <q-item-label>
             <q-input
-              :model-value="settingsStore.projectApiKey as string"
+              :model-value="settingsStore.userEmail as string"
               @update:model-value="
-                SettingSI.putRecord({
-                  id: SettingIdEnum.PROJECT_API_KEY,
+                DB.table(TableEnum.SETTINGS).put({
+                  id: SettingIdEnum.USER_EMAIL,
                   value: $event,
                 })
               "
               type="text"
               lazy-rules
-              autogrow
               dense
               outlined
               color="primary"
@@ -169,20 +212,41 @@ function onDeleteDatabase() {
           <q-item-label>Password</q-item-label>
           <q-item-label>
             <q-input
-              :model-value="settingsStore.projectApiKey as string"
+              :model-value="settingsStore.userPassword as string"
               @update:model-value="
-                SettingSI.putRecord({
-                  id: SettingIdEnum.PROJECT_API_KEY,
+                DB.table(TableEnum.SETTINGS).put({
+                  id: SettingIdEnum.USER_PASSWORD,
                   value: $event,
                 })
               "
               type="password"
               lazy-rules
-              autogrow
               dense
               outlined
               color="primary"
             />
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item>
+        <q-btn
+          class="col"
+          label="Authenticate"
+          color="primary"
+          :icon="keyIcon"
+          @click="onAuthenticate"
+        />
+      </q-item>
+
+      <q-item v-if="backendStore.user?.id">
+        <q-item-section top>
+          <q-item-label>Current User</q-item-label>
+          <q-item-label v-if="backendStore.user?.id" caption>
+            {{ backendStore.user.id }}
+          </q-item-label>
+          <q-item-label v-if="backendStore.user?.email" caption>
+            {{ backendStore.user.email }}
           </q-item-label>
         </q-item-section>
       </q-item>
@@ -198,35 +262,12 @@ function onDeleteDatabase() {
 
       <q-item>
         <q-item-section top>
-          <q-item-label>Project API Key</q-item-label>
-          <q-item-label>
-            <q-input
-              :model-value="settingsStore.projectApiKey as string"
-              @update:model-value="
-                SettingSI.putRecord({
-                  id: SettingIdEnum.PROJECT_API_KEY,
-                  value: $event,
-                })
-              "
-              type="textarea"
-              lazy-rules
-              autogrow
-              dense
-              outlined
-              color="primary"
-            />
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item>
-        <q-item-section top>
           <q-item-label>Project URL</q-item-label>
           <q-item-label>
             <q-input
               :model-value="settingsStore.projectUrl as string"
               @update:model-value="
-                SettingSI.putRecord({
+                DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.PROJECT_URL,
                   value: $event,
                 })
@@ -244,12 +285,35 @@ function onDeleteDatabase() {
 
       <q-item>
         <q-item-section top>
-          <q-item-label>AI API Key</q-item-label>
+          <q-item-label>Project API Key</q-item-label>
+          <q-item-label>
+            <q-input
+              :model-value="settingsStore.projectApiKey as string"
+              @update:model-value="
+                DB.table(TableEnum.SETTINGS).put({
+                  id: SettingIdEnum.PROJECT_API_KEY,
+                  value: $event,
+                })
+              "
+              type="textarea"
+              lazy-rules
+              autogrow
+              dense
+              outlined
+              color="primary"
+            />
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item>
+        <q-item-section top>
+          <q-item-label>OpenAI API Key</q-item-label>
           <q-item-label>
             <q-input
               :model-value="settingsStore.apiKey as string"
               @update:model-value="
-                SettingSI.putRecord({
+                DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.API_KEY,
                   value: $event,
                 })
@@ -272,7 +336,7 @@ function onDeleteDatabase() {
             <q-input
               :model-value="settingsStore.systemPrompt as string"
               @update:model-value="
-                SettingSI.putRecord({
+                DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.SYSTEM_PROMPT,
                   value: $event,
                 })
@@ -287,7 +351,7 @@ function onDeleteDatabase() {
               <template v-slot:append>
                 <q-icon
                   @click="
-                    SettingSI.putRecord({
+                    DB.table(TableEnum.SETTINGS).put({
                       id: SettingIdEnum.SYSTEM_PROMPT,
                       value: systemPrompt,
                     })
@@ -308,7 +372,7 @@ function onDeleteDatabase() {
             <q-input
               :model-value="settingsStore.userPrompt as string"
               @update:model-value="
-                SettingSI.putRecord({
+                DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.USER_PROMPT,
                   value: $event,
                 })
@@ -323,7 +387,7 @@ function onDeleteDatabase() {
               <template v-slot:append>
                 <q-icon
                   @click="
-                    SettingSI.putRecord({
+                    DB.table(TableEnum.SETTINGS).put({
                       id: SettingIdEnum.USER_PROMPT,
                       value: userPrompt,
                     })
@@ -344,7 +408,7 @@ function onDeleteDatabase() {
             <q-select
               :model-value="(settingsStore.maxTokens as number) ?? 2048"
               @update:model-value="
-                SettingSI.putRecord({
+                DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.MAX_TOKENS,
                   value: Number($event),
                 })
@@ -369,7 +433,7 @@ function onDeleteDatabase() {
                 (settingsStore.modelName as string) ?? 'gpt-4-turbo'
               "
               @update:model-value="
-                SettingSI.putRecord({
+                DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.MODEL_NAME,
                   value: Number($event),
                 })
@@ -403,7 +467,7 @@ function onDeleteDatabase() {
           <q-toggle
             :model-value="settingsStore.infoMessages"
             @update:model-value="
-              SettingSI.putRecord({
+              DB.table(TableEnum.SETTINGS).put({
                 id: SettingIdEnum.INFO_MESSAGES,
                 value: $event,
               })
@@ -426,7 +490,7 @@ function onDeleteDatabase() {
           <q-toggle
             :model-value="settingsStore.consoleLogs"
             @update:model-value="
-              SettingSI.putRecord({
+              DB.table(TableEnum.SETTINGS).put({
                 id: SettingIdEnum.CONSOLE_LOGS,
                 value: $event,
               })
@@ -449,7 +513,7 @@ function onDeleteDatabase() {
           <q-select
             :model-value="settingsStore.logRetentionDuration"
             @update:model-value="
-              SettingSI.putRecord({
+              DB.table(TableEnum.SETTINGS).put({
                 id: SettingIdEnum.LOG_RETENTION_DURATION,
                 value: $event,
               })

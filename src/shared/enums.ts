@@ -14,11 +14,10 @@ export enum RouteNameEnum {
   MENU_LAYOUT = 'MenuLayout',
   SEARCH = 'Search',
   UPLOAD = 'Upload',
-  IMAGE_SEARCH = 'ImageSearch',
-  TABULAR_SEARCH = 'TabularSearch',
-  VIEW_LOGS = 'ViewLogsTable',
-  VIEW_SETTINGS = 'ViewSettingsTable',
-  TABLE = 'Table', // For core app tables
+  SEARCH_IMAGES = 'SearchImages',
+  SEARCH_ITEMS = 'SearchItems',
+  VIEW_LOGS = 'LogsTable',
+  VIEW_SETTINGS = 'SettingsTable',
   SETTINGS = 'Settings',
   NOT_FOUND = 'NotFound',
 }
@@ -81,6 +80,8 @@ export enum DurationMSEnum {
  * The only valid IDs for settings in the application.
  */
 export enum SettingIdEnum {
+  USER_EMAIL = 'User Email',
+  USER_PASSWORD = 'User Password',
   LOGIN_OVERLAY = 'Login Overlay',
   CONSOLE_LOGS = 'Console Logs',
   INFO_MESSAGES = 'Info Messages',

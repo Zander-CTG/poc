@@ -13,6 +13,16 @@ export const useSettingsStore = defineStore({
   }),
 
   getters: {
+    userEmail: (state) => {
+      return state.settings.find(
+        (s: SettingType) => s.id === SettingIdEnum.USER_EMAIL,
+      )?.value
+    },
+    userPassword: (state) => {
+      return state.settings.find(
+        (s: SettingType) => s.id === SettingIdEnum.USER_PASSWORD,
+      )?.value
+    },
     consoleLogs: (state) => {
       return state.settings.find(
         (s: SettingType) => s.id === SettingIdEnum.CONSOLE_LOGS,
@@ -26,11 +36,6 @@ export const useSettingsStore = defineStore({
     logRetentionDuration: (state) => {
       return state.settings.find(
         (s: SettingType) => s.id === SettingIdEnum.LOG_RETENTION_DURATION,
-      )?.value
-    },
-    loginOverlay: (state) => {
-      return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.LOGIN_OVERLAY,
       )?.value
     },
     apiKey: (state) => {

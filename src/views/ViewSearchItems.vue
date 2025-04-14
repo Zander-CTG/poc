@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DialogInspectItem from '@/components/dialogs/DialogInspectItem.vue'
 import type { ChildItem } from '@/models/Item'
 import { DB } from '@/services/db'
 import { appName } from '@/shared/constants'
@@ -6,6 +7,7 @@ import { TableEnum } from '@/shared/enums'
 import { closeIcon, columnsIcon, itemsIcon, searchIcon } from '@/shared/icons'
 import {
   columnOptionsFromTableColumns,
+  hiddenTableColumn,
   recordsCount,
   tableColumn,
   visibleColumnsFromTableColumns,
@@ -13,19 +15,20 @@ import {
 import useLogger from '@/use/useLogger'
 import useRouting from '@/use/useRouting'
 import { liveQuery } from 'dexie'
-import { useMeta, type QTableColumn } from 'quasar'
+import { useMeta, useQuasar, type QTableColumn } from 'quasar'
 import { onUnmounted, ref, type Ref } from 'vue'
 
 useMeta({ title: `${appName} - Data Table` })
 
+const $q = useQuasar()
 const { log } = useLogger()
 const { goBack } = useRouting()
 
 const searchFilter: Ref<string> = ref('')
 const tableColumns = [
-  // hiddenTableColumn('id'),
-  tableColumn('id', 'Id', 'UUID'),
-  tableColumn('image_id', 'Image Id', 'UUID'),
+  hiddenTableColumn('id'),
+  // tableColumn('id', 'Id', 'UUID'),
+  // tableColumn('image_id', 'Image Id', 'UUID'),
   tableColumn('createdAt', 'Created Date', 'DATE'),
   tableColumn('type', 'Type', 'TEXT'),
   tableColumn('categories', 'Categories', 'LONG-LIST-PRINT'),
@@ -53,26 +56,17 @@ onUnmounted(() => {
   subscription.unsubscribe()
 })
 
-const imageUrls: Ref<Record<string, string>> = ref({})
-
-async function fetchImage(imageId: string) {
-  const image = await DB.table(TableEnum.IMAGES).get(imageId)
-  imageUrls.value[imageId] = URL.createObjectURL(image.file)
+function onItemClick(row: ChildItem) {
+  $q.dialog({
+    component: DialogInspectItem,
+    componentProps: { id: row.id },
+  })
 }
 </script>
-
-<style scoped>
-.image {
-  max-width: 100%;
-  max-height: 200px;
-  object-fit: contain;
-}
-</style>
 
 <template>
   <q-table
     fullscreen
-    grid
     :rows="liveData"
     :columns="tableColumns"
     :visible-columns="visibleColumns"
@@ -81,41 +75,36 @@ async function fetchImage(imageId: string) {
     virtual-scroll
     row-key="id"
   >
-    <template v-slot:item="props">
-      <div class="q-pa-xs col-xs-12 col-sm-6 col-md-4 col-lg-3">
-        <q-card bordered flat>
-          <q-list dense>
-            <q-item v-if="props.row.image_id">
-              <q-item-section top>
-                <q-item-label>
-                  <img
-                    :src="
-                      imageUrls[props.row.image_id] ||
-                      (fetchImage(props.row.image_id) as any)
-                    "
-                    alt="Image"
-                    class="image"
-                  />
-                </q-item-label>
-              </q-item-section>
-            </q-item>
+    <template v-slot:header="props">
+      <q-tr :props="props">
+        <q-th
+          v-for="col in props.cols"
+          v-show="col.name !== 'hidden'"
+          :key="col.name"
+          :props="props"
+        >
+          {{ col.label }}
+        </q-th>
+      </q-tr>
+    </template>
 
-            <q-item v-for="col in props.cols" :key="col.name">
-              <q-item-section top>
-                <q-item-label>{{ col.label }}</q-item-label>
-                <q-item-label caption>{{ col.value }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card>
-      </div>
+    <template v-slot:body="props">
+      <q-tr
+        :props="props"
+        class="cursor-pointer"
+        @click="onItemClick(props.row)"
+      >
+        <q-td v-for="col in props.cols" :key="col.name" :props="props">
+          {{ col.value }}
+        </q-td>
+      </q-tr>
     </template>
 
     <template v-slot:top>
       <div class="row justify-start full-width q-mb-md">
         <div class="col-10 text-h6 text-bold ellipsis">
           <q-icon class="q-pb-xs q-mr-xs" :name="itemsIcon" />
-          Images
+          Items
         </div>
 
         <q-btn

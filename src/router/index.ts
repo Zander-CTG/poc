@@ -1,10 +1,8 @@
 import LayoutMenu from '@/layouts/LayoutMenu.vue'
 import { RouteNameEnum } from '@/shared/enums'
-import { tableSchema } from '@/shared/schemas'
-import ViewImageSearch from '@/views/ViewImageSearch.vue'
 import ViewSearch from '@/views/ViewSearch.vue'
-import ViewTable from '@/views/ViewTable.vue'
-import ViewTabularSearch from '@/views/ViewTabularSearch.vue'
+import ViewImageSearch from '@/views/ViewSearchImages.vue'
+import ViewTabularSearch from '@/views/ViewSearchItems.vue'
 import ViewUpload from '@/views/ViewUpload.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
@@ -52,29 +50,13 @@ const router = createRouter({
       component: () => import('@/views/ViewSettingsTable.vue'),
     },
     {
-      path: '/:table/table',
-      name: RouteNameEnum.TABLE,
-      component: ViewTable,
-      beforeEnter: (to: any, _: any, next: any) => {
-        const routeTable = to.params.table
-        const isRouteTable = tableSchema.safeParse(routeTable).success
-
-        if (!isRouteTable) {
-          return next({
-            name: RouteNameEnum.NOT_FOUND,
-          })
-        }
-        return next()
-      },
-    },
-    {
-      path: '/image-search',
-      name: RouteNameEnum.IMAGE_SEARCH,
+      path: '/search/images',
+      name: RouteNameEnum.SEARCH_IMAGES,
       component: ViewImageSearch,
     },
     {
-      path: '/tabular-search',
-      name: RouteNameEnum.TABULAR_SEARCH,
+      path: '/search/items',
+      name: RouteNameEnum.SEARCH_ITEMS,
       component: ViewTabularSearch,
     },
   ],
