@@ -42,6 +42,16 @@ const router = createRouter({
     },
     // Table routes are fullscreen and have no layout
     {
+      path: '/view-logs',
+      name: RouteNameEnum.VIEW_LOGS,
+      component: () => import('@/views/ViewLogsTable.vue'),
+    },
+    {
+      path: '/view-settings',
+      name: RouteNameEnum.VIEW_SETTINGS,
+      component: () => import('@/views/ViewSettingsTable.vue'),
+    },
+    {
       path: '/:table/table',
       name: RouteNameEnum.TABLE,
       component: ViewTable,

@@ -213,6 +213,7 @@ export abstract class BaseService {
       const defaultSettings: {
         [key in SettingIdEnum]: SettingValueType
       } = {
+        [SettingIdEnum.LOGIN_OVERLAY]: true,
         [SettingIdEnum.ADVANCED_MODE]: false,
         [SettingIdEnum.INSTRUCTIONS_OVERLAY]: true,
         [SettingIdEnum.CONSOLE_LOGS]: false,

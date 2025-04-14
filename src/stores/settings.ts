@@ -13,11 +13,6 @@ export const useSettingsStore = defineStore({
   }),
 
   getters: {
-    advancedMode: (state) => {
-      return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.ADVANCED_MODE,
-      )?.value
-    },
     consoleLogs: (state) => {
       return state.settings.find(
         (s: SettingType) => s.id === SettingIdEnum.CONSOLE_LOGS,
@@ -28,14 +23,14 @@ export const useSettingsStore = defineStore({
         (s: SettingType) => s.id === SettingIdEnum.INFO_MESSAGES,
       )?.value
     },
-    instructionsOverlay: (state) => {
-      return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.INSTRUCTIONS_OVERLAY,
-      )?.value
-    },
     logRetentionDuration: (state) => {
       return state.settings.find(
         (s: SettingType) => s.id === SettingIdEnum.LOG_RETENTION_DURATION,
+      )?.value
+    },
+    loginOverlay: (state) => {
+      return state.settings.find(
+        (s: SettingType) => s.id === SettingIdEnum.LOGIN_OVERLAY,
       )?.value
     },
     apiKey: (state) => {

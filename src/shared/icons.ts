@@ -34,10 +34,12 @@ import {
   symRoundedLibraryAdd,
   symRoundedLock,
   symRoundedLockOpenRight,
+  symRoundedManageAccounts,
   symRoundedManageSearch,
   symRoundedMenu,
   symRoundedMonitoring,
   symRoundedMoreVert,
+  symRoundedPerson,
   symRoundedPublish,
   symRoundedRecommend,
   symRoundedRedeem,
@@ -125,3 +127,5 @@ export const imageSearchIcon = symRoundedImageSearch
 export const disabledVisibleIcon = symRoundedDisabledVisible
 export const itemsIcon = symRoundedCategory
 export const refreshIcon = symRoundedRefresh
+export const manageSettingsIcon = symRoundedManageAccounts
+export const personIcon = symRoundedPerson

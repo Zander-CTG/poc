@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import DialogConfirm from '@/components/dialogs/DialogConfirm.vue'
-import PageFabMenu from '@/components/page/PageFabMenu.vue'
 import PageResponsive from '@/components/page/PageResponsive.vue'
 import { DB } from '@/services/db'
 import { LogSI } from '@/services/LogService'
@@ -14,11 +13,13 @@ import {
 } from '@/shared/enums'
 import {
   apiIcon,
+  dataTableIcon,
   deleteIcon,
   deleteSweepIcon,
   deleteXIcon,
   logsTableIcon,
   optionsIcon,
+  personIcon,
   refreshIcon,
   settingsTableIcon,
   warnIcon,
@@ -57,7 +58,7 @@ function onDeleteLogs() {
       message: 'Are you sure you want to delete all Logs?',
       color: 'negative',
       icon: deleteIcon,
-      useUnlock: 'ALWAYS',
+      requiresUnlock: true,
     },
   }).onOk(async () => {
     try {
@@ -83,7 +84,7 @@ function onDeleteData() {
       message: 'Are you sure you want to delete all of your data?',
       color: 'negative',
       icon: deleteXIcon,
-      useUnlock: 'ALWAYS',
+      requiresUnlock: true,
     },
   }).onOk(async () => {
     try {
@@ -112,7 +113,7 @@ function onDeleteDatabase() {
         'Delete the underlining database? All data will be lost. You must reload the website after this action to reinitialize the database.',
       color: 'negative',
       icon: deleteSweepIcon,
-      useUnlock: 'ALWAYS',
+      requiresUnlock: true,
     },
   }).onOk(async () => {
     try {
@@ -134,31 +135,60 @@ function onDeleteDatabase() {
 
 <template>
   <PageResponsive>
-    <PageFabMenu
-      :isLoading="$q.loading.isActive"
-      :subButtons="[
-        {
-          label: 'Logs Data',
-          color: 'secondary',
-          icon: logsTableIcon,
-          handleClick: () =>
-            router.push({
-              name: RouteNameEnum.TABLE,
-              params: { table: TableEnum.LOGS },
-            }),
-        },
-        {
-          label: 'Settings Data',
-          color: 'secondary',
-          icon: settingsTableIcon,
-          handleClick: () =>
-            router.push({
-              name: RouteNameEnum.TABLE,
-              params: { table: TableEnum.SETTINGS },
-            }),
-        },
-      ]"
-    />
+    <q-list padding>
+      <q-item-label header>
+        <q-icon class="on-left" size="sm" :name="personIcon" />
+        Account
+      </q-item-label>
+
+      <q-item>
+        <q-item-section top>
+          <q-item-label>Email</q-item-label>
+          <q-item-label>
+            <q-input
+              :model-value="settingsStore.projectApiKey as string"
+              @update:model-value="
+                SettingSI.putRecord({
+                  id: SettingIdEnum.PROJECT_API_KEY,
+                  value: $event,
+                })
+              "
+              type="text"
+              lazy-rules
+              autogrow
+              dense
+              outlined
+              color="primary"
+            />
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item>
+        <q-item-section top>
+          <q-item-label>Password</q-item-label>
+          <q-item-label>
+            <q-input
+              :model-value="settingsStore.projectApiKey as string"
+              @update:model-value="
+                SettingSI.putRecord({
+                  id: SettingIdEnum.PROJECT_API_KEY,
+                  value: $event,
+                })
+              "
+              type="password"
+              lazy-rules
+              autogrow
+              dense
+              outlined
+              color="primary"
+            />
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+    </q-list>
+
+    <q-separator />
 
     <q-list padding>
       <q-item-label header>
@@ -351,9 +381,11 @@ function onDeleteDatabase() {
           </q-item-label>
         </q-item-section>
       </q-item>
+    </q-list>
 
-      <q-separator class="q-my-md" />
+    <q-separator />
 
+    <q-list padding>
       <q-item-label header>
         <q-icon class="on-left" size="sm" :name="optionsIcon" />
         Options
@@ -361,32 +393,9 @@ function onDeleteDatabase() {
 
       <q-item tag="label" :disable="$q.loading.isActive">
         <q-item-section top>
-          <q-item-label>Show Instructions</q-item-label>
+          <q-item-label>Show Info Popups</q-item-label>
           <q-item-label caption>
-            Redisplays the welcome message and app usage instructions.
-          </q-item-label>
-        </q-item-section>
-
-        <q-item-section side>
-          <q-toggle
-            :model-value="settingsStore.instructionsOverlay"
-            @update:model-value="
-              SettingSI.putRecord({
-                id: SettingIdEnum.INSTRUCTIONS_OVERLAY,
-                value: $event,
-              })
-            "
-            :disable="$q.loading.isActive"
-            size="lg"
-          />
-        </q-item-section>
-      </q-item>
-
-      <q-item tag="label" :disable="$q.loading.isActive">
-        <q-item-section top>
-          <q-item-label>Show Info Messages</q-item-label>
-          <q-item-label caption>
-            Show popup messages for actions that were completed.
+            Show informative popup messages for actions that were completed.
           </q-item-label>
         </q-item-section>
 
@@ -454,17 +463,43 @@ function onDeleteDatabase() {
           />
         </q-item-section>
       </q-item>
+    </q-list>
 
-      <q-separator class="q-my-md" />
+    <q-separator />
 
+    <q-list padding>
+      <q-item-label header>
+        <q-icon class="on-left" size="sm" :name="dataTableIcon" />
+        Internal Data Tables
+      </q-item-label>
+
+      <q-item>
+        <q-btn
+          class="col"
+          label="View Logs"
+          color="primary"
+          :icon="logsTableIcon"
+          @click="router.push({ name: RouteNameEnum.VIEW_LOGS })"
+        />
+      </q-item>
+
+      <q-item>
+        <q-btn
+          class="col"
+          label="View Settings"
+          color="primary"
+          :icon="settingsTableIcon"
+          @click="router.push({ name: RouteNameEnum.VIEW_SETTINGS })"
+        />
+      </q-item>
+    </q-list>
+
+    <q-separator />
+
+    <q-list padding>
       <q-item-label header class="text-negative">
         <q-icon class="on-left" size="sm" :name="warnIcon" />
         Danger Zone
-      </q-item-label>
-
-      <q-item-label header>
-        The following operations cannot be undone. Consider exporting your data
-        before proceeding.
       </q-item-label>
 
       <q-item>
@@ -508,8 +543,8 @@ function onDeleteDatabase() {
           <q-item-label>Delete Database</q-item-label>
           <q-item-label caption>
             Delete the underlining browser database and all of its data
-            (requires app reload). This may be required if your app is having
-            database issues.
+            (requires app reload). Only required for local database
+            modifications.
           </q-item-label>
         </q-item-section>
       </q-item>

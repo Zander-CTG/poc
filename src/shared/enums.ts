@@ -16,6 +16,8 @@ export enum RouteNameEnum {
   UPLOAD = 'Upload',
   IMAGE_SEARCH = 'ImageSearch',
   TABULAR_SEARCH = 'TabularSearch',
+  VIEW_LOGS = 'ViewLogsTable',
+  VIEW_SETTINGS = 'ViewSettingsTable',
   TABLE = 'Table', // For core app tables
   SETTINGS = 'Settings',
   NOT_FOUND = 'NotFound',
@@ -79,8 +81,7 @@ export enum DurationMSEnum {
  * The only valid IDs for settings in the application.
  */
 export enum SettingIdEnum {
-  ADVANCED_MODE = 'Advanced Mode',
-  INSTRUCTIONS_OVERLAY = 'Instructions Overlay',
+  LOGIN_OVERLAY = 'Login Overlay',
   CONSOLE_LOGS = 'Console Logs',
   INFO_MESSAGES = 'Info Messages',
   LOG_RETENTION_DURATION = 'Log Rentention Duration',
