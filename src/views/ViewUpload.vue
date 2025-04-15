@@ -110,7 +110,7 @@ async function processImage() {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${settingsStore.apiKey}`,
+        Authorization: `Bearer ${settingsStore.aiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(jsonPayload),

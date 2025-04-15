@@ -23,24 +23,21 @@ export const useSettingsStore = defineStore({
         (s: SettingType) => s.id === SettingIdEnum.USER_PASSWORD,
       )?.value
     },
-    consoleLogs: (state) => {
+    //
+    projectUrl: (state) => {
       return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.CONSOLE_LOGS,
+        (s: SettingType) => s.id === SettingIdEnum.PROJECT_URL,
       )?.value
     },
-    infoMessages: (state) => {
+    projectApiKey: (state) => {
       return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.INFO_MESSAGES,
+        (s: SettingType) => s.id === SettingIdEnum.PROJECT_API_KEY,
       )?.value
     },
-    logRetentionDuration: (state) => {
+    //
+    aiApiKey: (state) => {
       return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.LOG_RETENTION_DURATION,
-      )?.value
-    },
-    apiKey: (state) => {
-      return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.API_KEY,
+        (s: SettingType) => s.id === SettingIdEnum.AI_API_KEY,
       )?.value
     },
     systemPrompt: (state) => {
@@ -63,14 +60,20 @@ export const useSettingsStore = defineStore({
         (s: SettingType) => s.id === SettingIdEnum.MODEL_NAME,
       )?.value
     },
-    projectUrl: (state) => {
+    //
+    consoleLogs: (state) => {
       return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.PROJECT_URL,
+        (s: SettingType) => s.id === SettingIdEnum.CONSOLE_LOGS,
       )?.value
     },
-    projectApiKey: (state) => {
+    infoMessages: (state) => {
       return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.PROJECT_API_KEY,
+        (s: SettingType) => s.id === SettingIdEnum.INFO_MESSAGES,
+      )?.value
+    },
+    logRetentionDuration: (state) => {
+      return state.settings.find(
+        (s: SettingType) => s.id === SettingIdEnum.LOG_RETENTION_DURATION,
       )?.value
     },
   },

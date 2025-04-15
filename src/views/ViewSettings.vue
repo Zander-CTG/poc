@@ -308,13 +308,13 @@ async function onAuthenticate() {
 
       <q-item>
         <q-item-section top>
-          <q-item-label>OpenAI API Key</q-item-label>
+          <q-item-label>AI API Key</q-item-label>
           <q-item-label>
             <q-input
-              :model-value="settingsStore.apiKey as string"
+              :model-value="settingsStore.aiApiKey as string"
               @update:model-value="
                 DB.table(TableEnum.SETTINGS).put({
-                  id: SettingIdEnum.API_KEY,
+                  id: SettingIdEnum.AI_API_KEY,
                   value: $event,
                 })
               "

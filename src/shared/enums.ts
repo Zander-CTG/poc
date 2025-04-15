@@ -82,17 +82,19 @@ export enum DurationMSEnum {
 export enum SettingIdEnum {
   USER_EMAIL = 'User Email',
   USER_PASSWORD = 'User Password',
-  LOGIN_OVERLAY = 'Login Overlay',
-  CONSOLE_LOGS = 'Console Logs',
-  INFO_MESSAGES = 'Info Messages',
-  LOG_RETENTION_DURATION = 'Log Rentention Duration',
-  API_KEY = 'API Key',
+
+  PROJECT_URL = 'Project URL',
+  PROJECT_API_KEY = 'Project API Key',
+
+  AI_API_KEY = 'AI API Key',
   SYSTEM_PROMPT = 'System Prompt',
   USER_PROMPT = 'User Prompt',
   MAX_TOKENS = 'Max Tokens',
   MODEL_NAME = 'Model Name',
-  PROJECT_URL = 'Project URL',
-  PROJECT_API_KEY = 'Project API Key',
+
+  CONSOLE_LOGS = 'Console Logs',
+  INFO_MESSAGES = 'Info Messages',
+  LOG_RETENTION_DURATION = 'Log Rentention Duration',
 }
 
 //
