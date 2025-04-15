@@ -2,7 +2,7 @@
 import DialogInspectSetting from '@/components/dialogs/DialogInspectSetting.vue'
 import { DB } from '@/services/db'
 import { appName } from '@/shared/constants'
-import { closeIcon, inspectIcon, settingsTableIcon } from '@/shared/icons'
+import { closeIcon, settingsTableIcon } from '@/shared/icons'
 import type { IdType, SettingType } from '@/shared/types'
 import {
   recordsCount,
@@ -45,7 +45,7 @@ const subscription = DB.liveSettings().subscribe({
   },
 })
 
-function handleInspect(id: IdType) {
+function onInspect(id: IdType) {
   return $q.dialog({
     component: DialogInspectSetting,
     componentProps: { id },
@@ -78,25 +78,17 @@ onUnmounted(() => {
         >
           {{ col.label }}
         </q-th>
-        <q-th auto-width class="text-left">Actions</q-th>
       </q-tr>
     </template>
 
     <template v-slot:body="props">
-      <q-tr :props="props">
+      <q-tr
+        :props="props"
+        class="cursor-pointer"
+        @click="onInspect(props.row.id)"
+      >
         <q-td v-for="col in props.cols" :key="col.name" :props="props">
           {{ col.value }}
-        </q-td>
-        <q-td auto-width>
-          <q-btn
-            flat
-            round
-            dense
-            class="q-ml-xs"
-            color="primary"
-            :icon="inspectIcon"
-            @click="() => handleInspect(props.row.id)"
-          />
         </q-td>
       </q-tr>
     </template>

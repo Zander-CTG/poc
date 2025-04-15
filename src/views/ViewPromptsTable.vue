@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import DialogInspectLog from '@/components/dialogs/DialogInspectLog.vue'
+import DialogInspectPrompt from '@/components/dialogs/DialogInspectPrompt.vue'
+import type { ChildPrompt } from '@/models/Prompt'
 import { DB } from '@/services/db'
 import { appName } from '@/shared/constants'
 import {
@@ -8,7 +9,7 @@ import {
   logsTableIcon,
   searchIcon,
 } from '@/shared/icons'
-import type { IdType, LogType } from '@/shared/types'
+import type { IdType } from '@/shared/types'
 import {
   columnOptionsFromTableColumns,
   hiddenTableColumn,
@@ -27,16 +28,20 @@ const $q = useQuasar()
 const { goBack } = useRouting()
 const { log } = useLogger()
 
-const labelSingular = 'Log'
-const labelPlural = 'Logs'
+const labelSingular = 'Prompt'
+const labelPlural = 'Prompts'
 const searchFilter: Ref<string> = ref('')
 const tableColumns = [
   hiddenTableColumn('id'),
   tableColumn('id', 'Id', 'UUID'),
+  tableColumn('image_id', 'Image Id', 'UUID'),
   tableColumn('createdAt', 'Created Date', 'DATE'),
-  tableColumn('logLevel', 'Log Level'),
-  tableColumn('label', 'Label', 'TEXT'),
-  tableColumn('details', 'Details', 'JSON'),
+  tableColumn('model', 'Model', 'TEXT'),
+  tableColumn('system_prompt', 'System Prompt', 'TEXT'),
+  tableColumn('user_prompt', 'User Prompt', 'TEXT'),
+  tableColumn('max_tokens', 'Max Tokens', 'TEXT'),
+  tableColumn('response_time', 'Response Time', 'TEXT'),
+  tableColumn('response_data', 'Response Data', 'JSON'),
 ]
 const columnOptions: Ref<QTableColumn[]> = ref(
   columnOptionsFromTableColumns(tableColumns),
@@ -45,10 +50,10 @@ const visibleColumns: Ref<string[]> = ref(
   visibleColumnsFromTableColumns(tableColumns),
 )
 
-const liveData: Ref<LogType[]> = ref([])
+const liveData: Ref<ChildPrompt[]> = ref([])
 const isLiveQueryFinished = ref(false)
 
-const subscription = DB.liveLogs().subscribe({
+const subscription = DB.livePrompts().subscribe({
   next: (data) => {
     liveData.value = data
     isLiveQueryFinished.value = true
@@ -61,7 +66,7 @@ const subscription = DB.liveLogs().subscribe({
 
 function onInspect(id: IdType) {
   return $q.dialog({
-    component: DialogInspectLog,
+    component: DialogInspectPrompt,
     componentProps: { id },
   })
 }

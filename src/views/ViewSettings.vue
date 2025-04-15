@@ -21,6 +21,7 @@ import {
   personIcon,
   refreshIcon,
   settingsTableIcon,
+  voiceIcon,
   warnIcon,
 } from '@/shared/icons'
 import { useBackend } from '@/stores/backend'
@@ -49,6 +50,33 @@ const logDurationsOptions = [
 ]
 
 /**
+ * Resets all settings to their default values.
+ */
+function onResetSettings() {
+  $q.dialog({
+    component: DialogConfirm,
+    componentProps: {
+      title: 'Reset Settings',
+      message: 'Are you sure you want to reset all settings?',
+      color: 'warning',
+      icon: refreshIcon,
+      requiresUnlock: true,
+    },
+  }).onOk(async () => {
+    try {
+      $q.loading.show()
+      await DB.table(TableEnum.SETTINGS).clear()
+      await DB.initializeSettingsOnStartup() // Re-initialize settings immediately
+      log.info('Successfully reset settings')
+    } catch (error) {
+      log.error('Error resetting settings', error as Error)
+    } finally {
+      $q.loading.hide()
+    }
+  })
+}
+
+/**
  * Deletes all app logs from the database.
  */
 function onDeleteLogs() {
@@ -75,14 +103,14 @@ function onDeleteLogs() {
 }
 
 /**
- * Deletes all app data including configuration and user data from the database.
+ * Deletes all user data from the database.
  */
-function onDeleteData() {
+function onDeleteUserData() {
   $q.dialog({
     component: DialogConfirm,
     componentProps: {
-      title: 'Delete Data',
-      message: 'Are you sure you want to delete all of your data?',
+      title: 'Delete User Data',
+      message: 'Are you sure you want to delete all user data?',
       color: 'negative',
       icon: deleteXIcon,
       requiresUnlock: true,
@@ -90,12 +118,14 @@ function onDeleteData() {
   }).onOk(async () => {
     try {
       $q.loading.show()
-      const tables = Object.values(TableEnum)
-      await Promise.all(tables.map(async (table) => DB.table(table).clear()))
-      await DB.initializeSettingsOnStartup() // Re-initialize settings immediately
-      log.info('Successfully deleted data')
+      await Promise.all([
+        DB.table(TableEnum.IMAGES).clear(),
+        DB.table(TableEnum.ITEMS).clear(),
+        DB.table(TableEnum.PROMPTS).clear(),
+      ])
+      log.info('Successfully deleted user data')
     } catch (error) {
-      log.error(`Error deleting data`, error as Error)
+      log.error(`Error deleting user data`, error as Error)
     } finally {
       $q.loading.hide()
     }
@@ -539,6 +569,7 @@ async function onAuthenticate() {
 
       <q-item>
         <q-btn
+          :disable="$q.loading.isActive"
           class="col"
           label="View Logs"
           color="primary"
@@ -549,11 +580,23 @@ async function onAuthenticate() {
 
       <q-item>
         <q-btn
+          :disable="$q.loading.isActive"
           class="col"
           label="View Settings"
           color="primary"
           :icon="settingsTableIcon"
           @click="router.push({ name: RouteNameEnum.VIEW_SETTINGS })"
+        />
+      </q-item>
+
+      <q-item>
+        <q-btn
+          :disable="$q.loading.isActive"
+          class="col"
+          label="View Prompts"
+          color="primary"
+          :icon="voiceIcon"
+          @click="router.push({ name: RouteNameEnum.VIEW_PROMPTS })"
         />
       </q-item>
     </q-list>
@@ -565,6 +608,25 @@ async function onAuthenticate() {
         <q-icon class="on-left" size="sm" :name="warnIcon" />
         Danger Zone
       </q-item-label>
+
+      <q-item>
+        <q-item-section top>
+          <q-item-label>Reset Settings</q-item-label>
+          <q-item-label caption>
+            Resets all settings to their default values. This will clear the API
+            keys.
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item class="q-mb-sm">
+        <q-btn
+          :icon="refreshIcon"
+          :disable="$q.loading.isActive"
+          color="warning"
+          @click="onResetSettings()"
+        />
+      </q-item>
 
       <q-item>
         <q-item-section top>
@@ -586,9 +648,10 @@ async function onAuthenticate() {
 
       <q-item>
         <q-item-section top>
-          <q-item-label>Delete Data</q-item-label>
+          <q-item-label>Delete User Data</q-item-label>
           <q-item-label caption>
-            Permanently delete all configuration and user data from the app.
+            Permanently delete all user data from the app (images, items,
+            prompts). This does not delete any settings or logs.
           </q-item-label>
         </q-item-section>
       </q-item>
@@ -598,7 +661,7 @@ async function onAuthenticate() {
           :icon="deleteXIcon"
           :disable="$q.loading.isActive"
           color="negative"
-          @click="onDeleteData()"
+          @click="onDeleteUserData()"
         />
       </q-item>
 
@@ -607,8 +670,8 @@ async function onAuthenticate() {
           <q-item-label>Delete Database</q-item-label>
           <q-item-label caption>
             Delete the underlining browser database and all of its data
-            (requires app reload). Only required for local database
-            modifications.
+            (requires app reload). Only required when making modifications to
+            the local database configuration (primarly the indexes).
           </q-item-label>
         </q-item-section>
       </q-item>

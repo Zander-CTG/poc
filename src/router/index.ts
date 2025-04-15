@@ -1,8 +1,8 @@
 import LayoutMenu from '@/layouts/LayoutMenu.vue'
 import { RouteNameEnum } from '@/shared/enums'
 import ViewSearch from '@/views/ViewSearch.vue'
-import ViewImageSearch from '@/views/ViewSearchImages.vue'
-import ViewTabularSearch from '@/views/ViewSearchItems.vue'
+import ViewSearchImages from '@/views/ViewSearchImages.vue'
+import ViewSearchItems from '@/views/ViewSearchItems.vue'
 import ViewUpload from '@/views/ViewUpload.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
@@ -50,14 +50,19 @@ const router = createRouter({
       component: () => import('@/views/ViewSettingsTable.vue'),
     },
     {
+      path: '/view-prompts',
+      name: RouteNameEnum.VIEW_PROMPTS,
+      component: () => import('@/views/ViewPromptsTable.vue'),
+    },
+    {
       path: '/search/images',
       name: RouteNameEnum.SEARCH_IMAGES,
-      component: ViewImageSearch,
+      component: ViewSearchImages,
     },
     {
       path: '/search/items',
       name: RouteNameEnum.SEARCH_ITEMS,
-      component: ViewTabularSearch,
+      component: ViewSearchItems,
     },
   ],
 })

@@ -101,7 +101,7 @@ export function tableColumn(
       return tableColumn
     case 'LONG-TEXT':
       // Truncates so it won't overflow the table cell
-      tableColumn.format = (val: string) => truncateText(val, 100, '...')
+      tableColumn.format = (val: string) => truncateText(val, 250, '...')
       return tableColumn
     case 'BOOL':
       // Converts output to a Yes or No string
@@ -128,7 +128,7 @@ export function tableColumn(
     case 'LONG-LIST-PRINT':
       // Prints the list as a truncated string
       tableColumn.format = (val: any[]) =>
-        truncateText(val.join(', '), 100, '...')
+        truncateText(val.join(', '), 250, '...')
       return tableColumn
     case 'SETTING':
       // Formats the setting value based on the setting type

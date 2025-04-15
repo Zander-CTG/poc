@@ -54,6 +54,7 @@ import {
   symRoundedStickyNote2,
   symRoundedTune,
   symRoundedViewWeek,
+  symRoundedVoiceSelection,
   symRoundedWarning,
 } from '@quasar/extras/material-symbols-rounded'
 
@@ -130,3 +131,4 @@ export const refreshIcon = symRoundedRefresh
 export const manageSettingsIcon = symRoundedManageAccounts
 export const personIcon = symRoundedPerson
 export const keyIcon = symRoundedKey
+export const voiceIcon = symRoundedVoiceSelection

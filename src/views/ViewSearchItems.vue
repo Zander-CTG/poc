@@ -3,8 +3,8 @@ import DialogInspectItem from '@/components/dialogs/DialogInspectItem.vue'
 import type { ChildItem } from '@/models/Item'
 import { DB } from '@/services/db'
 import { appName } from '@/shared/constants'
-import { TableEnum } from '@/shared/enums'
 import { closeIcon, columnsIcon, itemsIcon, searchIcon } from '@/shared/icons'
+import type { IdType } from '@/shared/types'
 import {
   columnOptionsFromTableColumns,
   hiddenTableColumn,
@@ -14,7 +14,6 @@ import {
 } from '@/shared/utils'
 import useLogger from '@/use/useLogger'
 import useRouting from '@/use/useRouting'
-import { liveQuery } from 'dexie'
 import { useMeta, useQuasar, type QTableColumn } from 'quasar'
 import { onUnmounted, ref, type Ref } from 'vue'
 
@@ -45,9 +44,7 @@ const visibleColumns: Ref<string[]> = ref(
 
 const liveData: Ref<ChildItem[]> = ref([])
 
-const subscription = liveQuery(() =>
-  DB.table(TableEnum.ITEMS).toArray(),
-).subscribe({
+const subscription = DB.liveItems().subscribe({
   next: (data: ChildItem[]) => (liveData.value = data),
   error: (error) => log.error('Error fetching live Items', error),
 })
@@ -56,10 +53,10 @@ onUnmounted(() => {
   subscription.unsubscribe()
 })
 
-function onItemClick(row: ChildItem) {
+function onInspect(id: IdType) {
   $q.dialog({
     component: DialogInspectItem,
-    componentProps: { id: row.id },
+    componentProps: { id },
   })
 }
 </script>
@@ -92,7 +89,7 @@ function onItemClick(row: ChildItem) {
       <q-tr
         :props="props"
         class="cursor-pointer"
-        @click="onItemClick(props.row)"
+        @click="onInspect(props.row.id)"
       >
         <q-td v-for="col in props.cols" :key="col.name" :props="props">
           {{ col.value }}

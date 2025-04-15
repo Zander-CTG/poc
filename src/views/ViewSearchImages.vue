@@ -8,7 +8,6 @@ import { closeIcon, itemsIcon } from '@/shared/icons'
 import { recordsCount, truncateText } from '@/shared/utils'
 import useLogger from '@/use/useLogger'
 import useRouting from '@/use/useRouting'
-import { liveQuery } from 'dexie'
 import { useMeta, useQuasar } from 'quasar'
 import { onUnmounted, ref, type Ref } from 'vue'
 
@@ -22,9 +21,7 @@ const searchFilter: Ref<string> = ref('')
 
 const liveData: Ref<ParentImage[]> = ref([])
 
-const subscription = liveQuery(() =>
-  DB.table(TableEnum.IMAGES).toArray(),
-).subscribe({
+const subscription = DB.liveImages().subscribe({
   next: (data: ParentImage[]) => (liveData.value = data),
   error: (error) => log.error('Error fetching live Images', error),
 })
@@ -77,7 +74,7 @@ function onImageClick(row: ParentImage) {
             <q-item-section top>
               <q-item-label>Visible Text</q-item-label>
               <q-item-label caption>{{
-                truncateText(props.row.visible_text.join(', '), 100, '...')
+                truncateText(props.row.visible_text.join(', '), 500, '...')
               }}</q-item-label>
             </q-item-section>
           </q-item>

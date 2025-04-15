@@ -36,9 +36,9 @@ export class Database extends Dexie {
     this.version(1).stores({
       [TableEnum.SETTINGS]: '&id',
       [TableEnum.LOGS]: '&id, createdAt',
-      [TableEnum.IMAGES]: '&id',
-      [TableEnum.ITEMS]: '&id, created, image_id',
-      [TableEnum.PROMPTS]: '&id, created, image_id',
+      [TableEnum.IMAGES]: '&id, createdAt',
+      [TableEnum.ITEMS]: '&id, createdAt, image_id',
+      [TableEnum.PROMPTS]: '&id, createdAt, image_id',
     })
 
     this[TableEnum.SETTINGS].mapToClass(Setting)
@@ -150,6 +150,39 @@ export class Database extends Dexie {
    */
   liveSettings(): Observable<SettingType[]> {
     return liveQuery(() => this.table(TableEnum.SETTINGS).toArray())
+  }
+
+  /**
+   * Returns an observable of the images in the database. The images are ordered by createdAt in
+   * descending order. This is a live query, so it will update automatically when the database
+   * changes.
+   */
+  livePrompts(): Observable<ChildPrompt[]> {
+    return liveQuery(() =>
+      this.table(TableEnum.PROMPTS).orderBy('createdAt').reverse().toArray(),
+    )
+  }
+
+  /**
+   * Returns an observable of the images in the database. The images are ordered by createdAt in
+   * descending order. This is a live query, so it will update automatically when the database
+   * changes.
+   */
+  liveImages(): Observable<ParentImage[]> {
+    return liveQuery(() =>
+      this.table(TableEnum.IMAGES).orderBy('createdAt').reverse().toArray(),
+    )
+  }
+
+  /**
+   * Returns an observable of the items in the database. The items are ordered by createdAt in
+   * descending order. This is a live query, so it will update automatically when the database
+   * changes.
+   */
+  liveItems(): Observable<ChildItem[]> {
+    return liveQuery(() =>
+      this.table(TableEnum.ITEMS).orderBy('createdAt').reverse().toArray(),
+    )
   }
 }
 
