@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { lockIcon, unlockIcon } from '@/shared/icons'
-import { useSettingsStore } from '@/stores/settings'
 import { useDialogPluginComponent } from 'quasar'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 /**
  * Dialog for confirming an operation.
@@ -12,27 +11,14 @@ const props = defineProps<{
   message: string
   color: string
   icon: string
-  useUnlock: 'ALWAYS' | 'NEVER' | 'ADVANCED-MODE-CONTROLLED'
+  requiresUnlock: boolean
 }>()
 
 defineEmits([...useDialogPluginComponent.emits])
 const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } =
   useDialogPluginComponent()
 
-const settingsStore = useSettingsStore()
-
 const toggle = ref(false)
-
-/**
- * Whether the dialog uses an unlock.
- */
-const usesUnlock = computed(() => {
-  return (
-    props.useUnlock === 'ALWAYS' ||
-    (props.useUnlock === 'ADVANCED-MODE-CONTROLLED' &&
-      !settingsStore.advancedMode)
-  )
-})
 </script>
 
 <template>
@@ -45,7 +31,7 @@ const usesUnlock = computed(() => {
 
       <q-card-section class="q-mt-lg">{{ message }}</q-card-section>
 
-      <q-card-section v-if="usesUnlock">
+      <q-card-section v-if="requiresUnlock">
         <q-item tag="label">
           <q-item-section>
             <q-item-label>Unlock Required</q-item-label>
@@ -69,7 +55,7 @@ const usesUnlock = computed(() => {
       <q-card-actions align="right">
         <q-btn flat label="Cancel" @click="onDialogCancel" />
         <q-btn
-          v-if="usesUnlock"
+          v-if="requiresUnlock"
           :disable="!toggle"
           flat
           label="Confirm"

@@ -14,9 +14,11 @@ export enum RouteNameEnum {
   MENU_LAYOUT = 'MenuLayout',
   SEARCH = 'Search',
   UPLOAD = 'Upload',
-  IMAGE_SEARCH = 'ImageSearch',
-  TABULAR_SEARCH = 'TabularSearch',
-  TABLE = 'Table', // For core app tables
+  SEARCH_IMAGES = 'SearchImages',
+  SEARCH_ITEMS = 'SearchItems',
+  VIEW_LOGS = 'LogsTable',
+  VIEW_SETTINGS = 'SettingsTable',
+  VIEW_PROMPTS = 'PromptsTable',
   SETTINGS = 'Settings',
   NOT_FOUND = 'NotFound',
 }
@@ -79,16 +81,21 @@ export enum DurationMSEnum {
  * The only valid IDs for settings in the application.
  */
 export enum SettingIdEnum {
-  ADVANCED_MODE = 'Advanced Mode',
-  INSTRUCTIONS_OVERLAY = 'Instructions Overlay',
-  CONSOLE_LOGS = 'Console Logs',
-  INFO_MESSAGES = 'Info Messages',
-  LOG_RETENTION_DURATION = 'Log Rentention Duration',
-  API_KEY = 'API Key',
+  USER_EMAIL = 'User Email',
+  USER_PASSWORD = 'User Password',
+  //
+  PROJECT_URL = 'Project URL',
+  PROJECT_API_KEY = 'Project API Key',
+  //
+  AI_API_KEY = 'AI API Key',
   SYSTEM_PROMPT = 'System Prompt',
   USER_PROMPT = 'User Prompt',
   MAX_TOKENS = 'Max Tokens',
   MODEL_NAME = 'Model Name',
+  //
+  CONSOLE_LOGS = 'Console Logs',
+  INFO_MESSAGES = 'Info Messages',
+  LOG_RETENTION_DURATION = 'Log Rentention Duration',
 }
 
 //

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouteNameEnum } from '@/shared/enums'
-import { cloudUploadIcon, searchIcon, settingsPageIcon } from '@/shared/icons'
+import { cloudUploadIcon, manageSettingsIcon, searchIcon } from '@/shared/icons'
 import { useQuasar } from 'quasar'
 import { computed } from 'vue'
 import { RouterView } from 'vue-router'
@@ -38,7 +38,7 @@ const isDesktop = computed(() => $q.screen.gt.xs)
 
         <q-route-tab
           no-caps
-          :icon="settingsPageIcon"
+          :icon="manageSettingsIcon"
           exact
           :to="{ name: RouteNameEnum.SETTINGS }"
         >

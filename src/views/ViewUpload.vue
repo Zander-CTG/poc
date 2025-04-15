@@ -7,6 +7,7 @@ import { DB } from '@/services/db'
 import { appName } from '@/shared/constants'
 import { TableEnum } from '@/shared/enums'
 import { importFileIcon } from '@/shared/icons'
+import type { IdType } from '@/shared/types'
 import { useSettingsStore } from '@/stores/settings'
 import useLogger from '@/use/useLogger'
 import { QSpinnerGears, useMeta, useQuasar } from 'quasar'
@@ -20,6 +21,9 @@ const settingsStore = useSettingsStore()
 
 const importImage: Ref<File> = ref(null!)
 const imageUrl: Ref<string | null> = ref(null)
+
+const trackedImageId: Ref<IdType> = ref(null!)
+const trackedPromptId: Ref<IdType> = ref(null!)
 
 /**
  * Handles rejected files during import and logs a warning.
@@ -97,6 +101,8 @@ async function processImage() {
     // Create initial records in the database
     await DB.table(TableEnum.IMAGES).add(localImageRecord)
     await DB.table(TableEnum.PROMPTS).add(localPromptRecord)
+    trackedImageId.value = localImageRecord.id
+    trackedPromptId.value = localPromptRecord.id
 
     log.info('Processing Image', {
       imageRecord: localImageRecord,
@@ -110,7 +116,7 @@ async function processImage() {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${settingsStore.apiKey}`,
+        Authorization: `Bearer ${settingsStore.aiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(jsonPayload),
@@ -151,7 +157,9 @@ async function processImage() {
       itemsCount: localItemRecords.length,
     })
   } catch (error) {
-    log.error('Error processing image', { error })
+    log.error('Error processing image', error as Error)
+    await DB.table(TableEnum.IMAGES).delete(trackedImageId.value)
+    await DB.table(TableEnum.PROMPTS).delete(trackedPromptId.value)
   } finally {
     importImage.value = null!
     $q.loading.hide()

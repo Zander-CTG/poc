@@ -1,37 +1,42 @@
 <script setup lang="ts">
-import type { ChildItem } from '@/models/Item'
+import DialogInspectLog from '@/components/dialogs/DialogInspectLog.vue'
 import { DB } from '@/services/db'
 import { appName } from '@/shared/constants'
-import { TableEnum } from '@/shared/enums'
-import { closeIcon, columnsIcon, itemsIcon, searchIcon } from '@/shared/icons'
+import {
+  closeIcon,
+  columnsIcon,
+  logsTableIcon,
+  searchIcon,
+} from '@/shared/icons'
+import type { IdType, LogType } from '@/shared/types'
 import {
   columnOptionsFromTableColumns,
+  hiddenTableColumn,
   recordsCount,
   tableColumn,
   visibleColumnsFromTableColumns,
 } from '@/shared/utils'
 import useLogger from '@/use/useLogger'
 import useRouting from '@/use/useRouting'
-import { liveQuery } from 'dexie'
-import { useMeta, type QTableColumn } from 'quasar'
+import { useMeta, useQuasar, type QTableColumn } from 'quasar'
 import { onUnmounted, ref, type Ref } from 'vue'
 
 useMeta({ title: `${appName} - Data Table` })
 
-const { log } = useLogger()
+const $q = useQuasar()
 const { goBack } = useRouting()
+const { log } = useLogger()
 
+const labelSingular = 'Log'
+const labelPlural = 'Logs'
 const searchFilter: Ref<string> = ref('')
 const tableColumns = [
-  // hiddenTableColumn('id'),
+  hiddenTableColumn('id'),
   tableColumn('id', 'Id', 'UUID'),
-  tableColumn('image_id', 'Image Id', 'UUID'),
   tableColumn('createdAt', 'Created Date', 'DATE'),
-  tableColumn('type', 'Type', 'TEXT'),
-  tableColumn('categories', 'Categories', 'LONG-LIST-PRINT'),
-  tableColumn('brand', 'Brand', 'TEXT'),
+  tableColumn('logLevel', 'Log Level'),
   tableColumn('label', 'Label', 'TEXT'),
-  tableColumn('description', 'Description', 'LONG-TEXT'),
+  tableColumn('details', 'Details', 'JSON'),
 ]
 const columnOptions: Ref<QTableColumn[]> = ref(
   columnOptionsFromTableColumns(tableColumns),
@@ -40,39 +45,35 @@ const visibleColumns: Ref<string[]> = ref(
   visibleColumnsFromTableColumns(tableColumns),
 )
 
-const liveData: Ref<ChildItem[]> = ref([])
+const liveData: Ref<LogType[]> = ref([])
+const isLiveQueryFinished = ref(false)
 
-const subscription = liveQuery(() =>
-  DB.table(TableEnum.ITEMS).toArray(),
-).subscribe({
-  next: (data: ChildItem[]) => (liveData.value = data),
-  error: (error) => log.error('Error fetching live Items', error),
+const subscription = DB.liveLogs().subscribe({
+  next: (data) => {
+    liveData.value = data
+    isLiveQueryFinished.value = true
+  },
+  error: (error) => {
+    log.error(`Error loading live ${labelPlural} data`, error as Error)
+    isLiveQueryFinished.value = true
+  },
 })
+
+function onInspect(id: IdType) {
+  return $q.dialog({
+    component: DialogInspectLog,
+    componentProps: { id },
+  })
+}
 
 onUnmounted(() => {
   subscription.unsubscribe()
 })
-
-const imageUrls: Ref<Record<string, string>> = ref({})
-
-async function fetchImage(imageId: string) {
-  const image = await DB.table(TableEnum.IMAGES).get(imageId)
-  imageUrls.value[imageId] = URL.createObjectURL(image.file)
-}
 </script>
-
-<style scoped>
-.image {
-  max-width: 100%;
-  max-height: 200px;
-  object-fit: contain;
-}
-</style>
 
 <template>
   <q-table
     fullscreen
-    grid
     :rows="liveData"
     :columns="tableColumns"
     :visible-columns="visibleColumns"
@@ -81,41 +82,36 @@ async function fetchImage(imageId: string) {
     virtual-scroll
     row-key="id"
   >
-    <template v-slot:item="props">
-      <div class="q-pa-xs col-xs-12 col-sm-6 col-md-4 col-lg-3">
-        <q-card bordered flat>
-          <q-list dense>
-            <q-item v-if="props.row.image_id">
-              <q-item-section top>
-                <q-item-label>
-                  <img
-                    :src="
-                      imageUrls[props.row.image_id] ||
-                      (fetchImage(props.row.image_id) as any)
-                    "
-                    alt="Image"
-                    class="image"
-                  />
-                </q-item-label>
-              </q-item-section>
-            </q-item>
+    <template v-slot:header="props">
+      <q-tr :props="props">
+        <q-th
+          v-for="col in props.cols"
+          v-show="col.name !== 'hidden'"
+          :key="col.name"
+          :props="props"
+        >
+          {{ col.label }}
+        </q-th>
+      </q-tr>
+    </template>
 
-            <q-item v-for="col in props.cols" :key="col.name">
-              <q-item-section top>
-                <q-item-label>{{ col.label }}</q-item-label>
-                <q-item-label caption>{{ col.value }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card>
-      </div>
+    <template v-slot:body="props">
+      <q-tr
+        :props="props"
+        class="cursor-pointer"
+        @click="onInspect(props.row.id)"
+      >
+        <q-td v-for="col in props.cols" :key="col.name" :props="props">
+          {{ col.value }}
+        </q-td>
+      </q-tr>
     </template>
 
     <template v-slot:top>
       <div class="row justify-start full-width q-mb-md">
         <div class="col-10 text-h6 text-bold ellipsis">
-          <q-icon class="q-pb-xs q-mr-xs" :name="itemsIcon" />
-          Images
+          <q-icon class="q-pb-xs q-mr-xs" :name="logsTableIcon" />
+          {{ labelPlural }}
         </div>
 
         <q-btn
@@ -166,7 +162,7 @@ async function fetchImage(imageId: string) {
     </template>
 
     <template v-slot:bottom>
-      {{ recordsCount(liveData, 'Item', 'Items') }}
+      {{ recordsCount(liveData, labelSingular, labelPlural) }}
     </template>
   </q-table>
 </template>

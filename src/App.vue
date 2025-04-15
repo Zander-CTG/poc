@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import DialogInstructionsOverlay from '@/components/dialogs/DialogInstructionsOverlay.vue'
-import { LogSI } from '@/services/LogService'
-import { SettingSI } from '@/services/SettingService'
 import { appDescription } from '@/shared/constants'
 import { errorIcon } from '@/shared/icons'
 import { useSettingsStore } from '@/stores/settings'
@@ -9,7 +6,7 @@ import useLogger from '@/use/useLogger'
 import { colors, useMeta, useQuasar } from 'quasar'
 import { onMounted, onUnmounted } from 'vue'
 import { RouterView } from 'vue-router'
-import type { SettingType } from './shared/types'
+import { DB } from './services/db'
 
 /**
  * Do NOT overwrite these specific properties in another useMeta call.
@@ -24,10 +21,6 @@ useMeta({
     },
     themeColor: {
       name: 'theme-color',
-      content: `${colors.getPaletteColor('primary')}`,
-    },
-    msTileColor: {
-      name: 'msapplication-TileColor',
       content: `${colors.getPaletteColor('primary')}`,
     },
   },
@@ -59,14 +52,14 @@ const { log } = useLogger()
 const settingsStore = useSettingsStore()
 
 // Loading live Settings into the store on startup for use throughout the app.
-const subscription = SettingSI.liveTable<SettingType>().subscribe({
+const subscription = DB.liveSettings().subscribe({
   next: (records) => (settingsStore.settings = records),
   error: (error) => log.error(`Error loading live Settings`, error as Error),
 })
 
 onMounted(async () => {
   try {
-    await SettingSI.initialize()
+    await DB.initializeSettingsOnStartup()
   } catch (error) {
     // Output the error and notify user since it could be a database or logger failure
     notify({
@@ -78,10 +71,10 @@ onMounted(async () => {
   }
 
   try {
-    const logsPurged = await LogSI.purge()
-    log.silentDebug('Expired logs purged', { logsPurged })
+    const logsDeleted = await DB.deleteExpiredLogsOnStartup()
+    log.silentDebug('Expired logs deleted', { logsDeleted })
   } catch (error) {
-    log.error('Error purging expired logs', error as Error)
+    log.error('Error deleting expired logs', error as Error)
   }
 })
 
@@ -91,6 +84,5 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <DialogInstructionsOverlay />
   <RouterView />
 </template>

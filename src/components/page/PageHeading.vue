@@ -1,7 +1,6 @@
 <script setup lang="ts">
 /**
  * Page heading with icon, title, and a separator.
- * Always place this below the PageFabMenu component.
  */
 
 defineProps<{

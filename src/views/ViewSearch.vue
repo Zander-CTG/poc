@@ -13,7 +13,7 @@ useMeta({ title: `${appName} - Search` })
     <q-list padding>
       <q-item class="q-mb-md">
         <q-item-section top>
-          <q-item-label>Search Inventory</q-item-label>
+          <q-item-label>Search Images and Items</q-item-label>
           <q-item-label caption>
             Choose from the search options below.
           </q-item-label>
@@ -31,7 +31,7 @@ useMeta({ title: `${appName} - Search` })
           glossy
           size="xl"
           color="primary"
-          :to="{ name: RouteNameEnum.IMAGE_SEARCH }"
+          :to="{ name: RouteNameEnum.SEARCH_IMAGES }"
         />
         <div class="col" />
         <q-btn
@@ -43,7 +43,7 @@ useMeta({ title: `${appName} - Search` })
           glossy
           size="xl"
           color="primary"
-          :to="{ name: RouteNameEnum.TABULAR_SEARCH }"
+          :to="{ name: RouteNameEnum.SEARCH_ITEMS }"
         />
         <div class="col" />
       </q-item>

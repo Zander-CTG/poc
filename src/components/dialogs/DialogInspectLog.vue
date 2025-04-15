@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import type { ParentImage } from '@/models/Image'
-import type { ChildItem } from '@/models/Item'
 import { DB } from '@/services/db'
 import { TableEnum } from '@/shared/enums'
 import { closeIcon, inspectIcon } from '@/shared/icons'
-import type { IdType } from '@/shared/types'
+import type { IdType, LogType } from '@/shared/types'
 import { useRecordStore } from '@/stores/record'
 import useLogger from '@/use/useLogger'
 import { useDialogPluginComponent } from 'quasar'
-import { onMounted, onUnmounted, ref, type Ref } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import InspectItemDate from './inspect/InspectItemDate.vue'
-import InspectItemList from './inspect/InspectItemList.vue'
+import InspectItemObject from './inspect/InspectItemObject.vue'
 import InspectItemString from './inspect/InspectItemString.vue'
 
 const props = defineProps<{
@@ -23,23 +21,12 @@ const { dialogRef, onDialogHide, onDialogCancel } = useDialogPluginComponent()
 const { log } = useLogger()
 const recordStore = useRecordStore()
 
-const imageUrl: Ref<string | null> = ref(null)
-
 onMounted(async () => {
   try {
-    recordStore.record = (await DB.table(TableEnum.ITEMS)
+    recordStore.record = (await DB.table(TableEnum.LOGS)
       .where('id')
       .equals(props.id)
-      .first()) as ChildItem
-
-    const localImage = (await DB.table(TableEnum.IMAGES)
-      .where('id')
-      .equals(recordStore.record?.image_id)
-      .first()) as ParentImage
-
-    if (localImage) {
-      imageUrl.value = URL.createObjectURL(localImage.file)
-    }
+      .first()) as LogType
   } catch (error) {
     log.error('Error loading record', error as Error)
   }
@@ -60,7 +47,7 @@ onUnmounted(() => {
   >
     <q-toolbar class="bg-info text-white toolbar-height">
       <q-icon :name="inspectIcon" size="sm" class="q-mx-sm" />
-      <q-toolbar-title>Inspect Item</q-toolbar-title>
+      <q-toolbar-title>Inspect Log</q-toolbar-title>
       <q-btn flat round :icon="closeIcon" @click="onDialogCancel" />
     </q-toolbar>
 
@@ -69,30 +56,12 @@ onUnmounted(() => {
         <div class="row justify-center">
           <div class="responsive-container">
             <q-list padding>
-              <q-item v-if="imageUrl" class="q-mb-sm">
-                <q-item-section top>
-                  <q-item-label>
-                    <img
-                      :src="imageUrl"
-                      alt="Image Associated with Item"
-                      style="max-width: 100%"
-                    />
-                  </q-item-label>
-                </q-item-section>
-              </q-item>
-
               <div v-if="recordStore.record">
                 <InspectItemString label="Id" recordKey="id" />
-                <InspectItemString label="Image Id" recordKey="image_id" />
                 <InspectItemDate label="Created Date" recordKey="createdAt" />
-                <InspectItemString label="Type" recordKey="type" />
-                <InspectItemString label="Brand" recordKey="brand" />
+                <InspectItemString label="Log Level" recordKey="logLevel" />
                 <InspectItemString label="Label" recordKey="label" />
-                <InspectItemString
-                  label="Description"
-                  recordKey="description"
-                />
-                <InspectItemList label="Categories" recordKey="categories" />
+                <InspectItemObject label="Details" recordKey="details" />
               </div>
             </q-list>
             <div class="q-mt-xl" />

@@ -13,34 +13,31 @@ export const useSettingsStore = defineStore({
   }),
 
   getters: {
-    advancedMode: (state) => {
+    userEmail: (state) => {
       return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.ADVANCED_MODE,
+        (s: SettingType) => s.id === SettingIdEnum.USER_EMAIL,
       )?.value
     },
-    consoleLogs: (state) => {
+    userPassword: (state) => {
       return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.CONSOLE_LOGS,
+        (s: SettingType) => s.id === SettingIdEnum.USER_PASSWORD,
       )?.value
     },
-    infoMessages: (state) => {
+    //
+    projectUrl: (state) => {
       return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.INFO_MESSAGES,
+        (s: SettingType) => s.id === SettingIdEnum.PROJECT_URL,
       )?.value
     },
-    instructionsOverlay: (state) => {
+    projectApiKey: (state) => {
       return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.INSTRUCTIONS_OVERLAY,
+        (s: SettingType) => s.id === SettingIdEnum.PROJECT_API_KEY,
       )?.value
     },
-    logRetentionDuration: (state) => {
+    //
+    aiApiKey: (state) => {
       return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.LOG_RETENTION_DURATION,
-      )?.value
-    },
-    apiKey: (state) => {
-      return state.settings.find(
-        (s: SettingType) => s.id === SettingIdEnum.API_KEY,
+        (s: SettingType) => s.id === SettingIdEnum.AI_API_KEY,
       )?.value
     },
     systemPrompt: (state) => {
@@ -61,6 +58,22 @@ export const useSettingsStore = defineStore({
     modelName: (state) => {
       return state.settings.find(
         (s: SettingType) => s.id === SettingIdEnum.MODEL_NAME,
+      )?.value
+    },
+    //
+    consoleLogs: (state) => {
+      return state.settings.find(
+        (s: SettingType) => s.id === SettingIdEnum.CONSOLE_LOGS,
+      )?.value
+    },
+    infoMessages: (state) => {
+      return state.settings.find(
+        (s: SettingType) => s.id === SettingIdEnum.INFO_MESSAGES,
+      )?.value
+    },
+    logRetentionDuration: (state) => {
+      return state.settings.find(
+        (s: SettingType) => s.id === SettingIdEnum.LOG_RETENTION_DURATION,
       )?.value
     },
   },

@@ -1,4 +1,3 @@
-import type { BaseService } from '@/services/BaseService'
 import type { Component } from 'vue'
 import { z } from 'zod'
 import type {
@@ -48,7 +47,6 @@ export type ComponentWithPropsType = {
 
 export type TableType = z.infer<typeof tableSchema>
 export type RouteNameType = z.infer<typeof routeNameSchema>
-export type ServiceType = InstanceType<new (...args: any[]) => BaseService>
 export type IdType = z.infer<typeof idSchema>
 export type TimestampType = z.infer<typeof timestampSchema>
 export type TextLineType = z.infer<typeof textLineSchema>

@@ -34,10 +34,12 @@ import {
   symRoundedLibraryAdd,
   symRoundedLock,
   symRoundedLockOpenRight,
+  symRoundedManageAccounts,
   symRoundedManageSearch,
   symRoundedMenu,
   symRoundedMonitoring,
   symRoundedMoreVert,
+  symRoundedPerson,
   symRoundedPublish,
   symRoundedRecommend,
   symRoundedRedeem,
@@ -52,6 +54,7 @@ import {
   symRoundedStickyNote2,
   symRoundedTune,
   symRoundedViewWeek,
+  symRoundedVoiceSelection,
   symRoundedWarning,
 } from '@quasar/extras/material-symbols-rounded'
 
@@ -125,3 +128,7 @@ export const imageSearchIcon = symRoundedImageSearch
 export const disabledVisibleIcon = symRoundedDisabledVisible
 export const itemsIcon = symRoundedCategory
 export const refreshIcon = symRoundedRefresh
+export const manageSettingsIcon = symRoundedManageAccounts
+export const personIcon = symRoundedPerson
+export const keyIcon = symRoundedKey
+export const voiceIcon = symRoundedVoiceSelection

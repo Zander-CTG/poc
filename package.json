@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.16.13",
+    "@supabase/supabase-js": "^2.49.4",
     "chart.js": "^4.4.6",
     "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^4.1.0",

@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import DialogConfirm from '@/components/dialogs/DialogConfirm.vue'
-import PageFabMenu from '@/components/page/PageFabMenu.vue'
 import PageResponsive from '@/components/page/PageResponsive.vue'
 import { DB } from '@/services/db'
-import { LogSI } from '@/services/LogService'
-import { SettingSI } from '@/services/SettingService'
 import { appName, systemPrompt, userPrompt } from '@/shared/constants'
 import {
   DurationEnum,
@@ -14,18 +11,24 @@ import {
 } from '@/shared/enums'
 import {
   apiIcon,
+  dataTableIcon,
   deleteIcon,
   deleteSweepIcon,
   deleteXIcon,
+  keyIcon,
   logsTableIcon,
   optionsIcon,
+  personIcon,
   refreshIcon,
   settingsTableIcon,
+  voiceIcon,
   warnIcon,
 } from '@/shared/icons'
+import { useBackend } from '@/stores/backend'
 import { useSettingsStore } from '@/stores/settings'
 import useLogger from '@/use/useLogger'
-import { useMeta, useQuasar } from 'quasar'
+import { createClient } from '@supabase/supabase-js'
+import { QSpinnerGears, useMeta, useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 
 useMeta({ title: `${appName} - Settings` })
@@ -34,9 +37,9 @@ const $q = useQuasar()
 const router = useRouter()
 const { log } = useLogger()
 const settingsStore = useSettingsStore()
+const backendStore = useBackend()
 
 const modelOptions = ['gpt-4-turbo']
-
 const logDurationsOptions = [
   DurationEnum['One Week'],
   DurationEnum['One Month'],
@@ -45,6 +48,33 @@ const logDurationsOptions = [
   DurationEnum['One Year'],
   DurationEnum.Forever,
 ]
+
+/**
+ * Resets all settings to their default values.
+ */
+function onResetSettings() {
+  $q.dialog({
+    component: DialogConfirm,
+    componentProps: {
+      title: 'Reset Settings',
+      message: 'Are you sure you want to reset all settings?',
+      color: 'warning',
+      icon: refreshIcon,
+      requiresUnlock: true,
+    },
+  }).onOk(async () => {
+    try {
+      $q.loading.show()
+      await DB.table(TableEnum.SETTINGS).clear()
+      await DB.initializeSettingsOnStartup() // Re-initialize settings immediately
+      log.info('Successfully reset settings')
+    } catch (error) {
+      log.error('Error resetting settings', error as Error)
+    } finally {
+      $q.loading.hide()
+    }
+  })
+}
 
 /**
  * Deletes all app logs from the database.
@@ -57,12 +87,12 @@ function onDeleteLogs() {
       message: 'Are you sure you want to delete all Logs?',
       color: 'negative',
       icon: deleteIcon,
-      useUnlock: 'ALWAYS',
+      requiresUnlock: true,
     },
   }).onOk(async () => {
     try {
       $q.loading.show()
-      await LogSI.clearTable()
+      await DB.table(TableEnum.LOGS).clear()
       log.info('Successfully deleted Logs')
     } catch (error) {
       log.error(`Error deleting Logs`, error as Error)
@@ -73,27 +103,29 @@ function onDeleteLogs() {
 }
 
 /**
- * Deletes all app data including configuration and user data from the database.
+ * Deletes all user data from the database.
  */
-function onDeleteData() {
+function onDeleteUserData() {
   $q.dialog({
     component: DialogConfirm,
     componentProps: {
-      title: 'Delete Data',
-      message: 'Are you sure you want to delete all of your data?',
+      title: 'Delete User Data',
+      message: 'Are you sure you want to delete all user data?',
       color: 'negative',
       icon: deleteXIcon,
-      useUnlock: 'ALWAYS',
+      requiresUnlock: true,
     },
   }).onOk(async () => {
     try {
       $q.loading.show()
-      const tables = Object.values(TableEnum)
-      await Promise.all(tables.map(async (table) => DB.table(table).clear()))
-      await SettingSI.initialize() // Re-initialize settings immediately
-      log.info('Successfully deleted data')
+      await Promise.all([
+        DB.table(TableEnum.IMAGES).clear(),
+        DB.table(TableEnum.ITEMS).clear(),
+        DB.table(TableEnum.PROMPTS).clear(),
+      ])
+      log.info('Successfully deleted user data')
     } catch (error) {
-      log.error(`Error deleting data`, error as Error)
+      log.error(`Error deleting user data`, error as Error)
     } finally {
       $q.loading.hide()
     }
@@ -112,7 +144,7 @@ function onDeleteDatabase() {
         'Delete the underlining database? All data will be lost. You must reload the website after this action to reinitialize the database.',
       color: 'negative',
       icon: deleteSweepIcon,
-      useUnlock: 'ALWAYS',
+      requiresUnlock: true,
     },
   }).onOk(async () => {
     try {
@@ -130,51 +162,189 @@ function onDeleteDatabase() {
     }
   })
 }
+
+/**
+ * Authenticates the user with Supabase with the provided credentials.
+ */
+async function onAuthenticate() {
+  $q.loading.show({
+    spinner: QSpinnerGears,
+    message: 'Authenticating',
+  })
+
+  const projectUrl = settingsStore.projectUrl as string
+  const projectApiKey = settingsStore.projectApiKey as string
+  const email = settingsStore.userEmail as string
+  const password = settingsStore.userPassword as string
+
+  try {
+    // All required values for connecting to the backend
+    if (!projectUrl) {
+      log.error('Project URL is missing')
+    } else if (!projectApiKey) {
+      log.error('Project API Key is missing')
+    } else if (!email) {
+      log.error('User email is missing')
+    } else if (!password) {
+      log.error('User password is missing')
+    } else {
+      // Connect to Supabase
+      backendStore.supabase = createClient(projectUrl, projectApiKey)
+      await backendStore.supabase.auth.signOut() // Sign out any existing user
+      const user = await backendStore.supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      log.info('User authenticated successfully', { user: user.data.user })
+      // Store user
+      backendStore.user = user.data.user
+    }
+  } catch (error) {
+    log.error('Error during authentication', error as Error)
+  } finally {
+    $q.loading.hide()
+  }
+}
 </script>
 
 <template>
   <PageResponsive>
-    <PageFabMenu
-      :isLoading="$q.loading.isActive"
-      :subButtons="[
-        {
-          label: 'Logs Data',
-          color: 'secondary',
-          icon: logsTableIcon,
-          handleClick: () =>
-            router.push({
-              name: RouteNameEnum.TABLE,
-              params: { table: TableEnum.LOGS },
-            }),
-        },
-        {
-          label: 'Settings Data',
-          color: 'secondary',
-          icon: settingsTableIcon,
-          handleClick: () =>
-            router.push({
-              name: RouteNameEnum.TABLE,
-              params: { table: TableEnum.SETTINGS },
-            }),
-        },
-      ]"
-    />
-
     <q-list padding>
       <q-item-label header>
-        <q-icon class="on-left" size="sm" :name="apiIcon" />
-        API
+        <q-icon class="on-left" size="sm" :name="personIcon" />
+        Account
       </q-item-label>
 
       <q-item>
         <q-item-section top>
-          <q-item-label>API Key</q-item-label>
+          <q-item-label>Email</q-item-label>
           <q-item-label>
             <q-input
-              :model-value="settingsStore.apiKey as string"
+              :model-value="settingsStore.userEmail as string"
               @update:model-value="
-                SettingSI.putRecord({
-                  id: SettingIdEnum.API_KEY,
+                DB.table(TableEnum.SETTINGS).put({
+                  id: SettingIdEnum.USER_EMAIL,
+                  value: $event,
+                })
+              "
+              type="text"
+              lazy-rules
+              dense
+              outlined
+              color="primary"
+            />
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item>
+        <q-item-section top>
+          <q-item-label>Password</q-item-label>
+          <q-item-label>
+            <q-input
+              :model-value="settingsStore.userPassword as string"
+              @update:model-value="
+                DB.table(TableEnum.SETTINGS).put({
+                  id: SettingIdEnum.USER_PASSWORD,
+                  value: $event,
+                })
+              "
+              type="password"
+              lazy-rules
+              dense
+              outlined
+              color="primary"
+            />
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item>
+        <q-btn
+          class="col"
+          label="Authenticate"
+          color="primary"
+          :icon="keyIcon"
+          @click="onAuthenticate"
+        />
+      </q-item>
+
+      <q-item v-if="backendStore.user?.id">
+        <q-item-section top>
+          <q-item-label>Current User</q-item-label>
+          <q-item-label v-if="backendStore.user?.id" caption>
+            {{ backendStore.user.id }}
+          </q-item-label>
+          <q-item-label v-if="backendStore.user?.email" caption>
+            {{ backendStore.user.email }}
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+    </q-list>
+
+    <q-separator />
+
+    <q-list padding>
+      <q-item-label header>
+        <q-icon class="on-left" size="sm" :name="apiIcon" />
+        Backend
+      </q-item-label>
+
+      <q-item>
+        <q-item-section top>
+          <q-item-label>Project URL</q-item-label>
+          <q-item-label>
+            <q-input
+              :model-value="settingsStore.projectUrl as string"
+              @update:model-value="
+                DB.table(TableEnum.SETTINGS).put({
+                  id: SettingIdEnum.PROJECT_URL,
+                  value: $event,
+                })
+              "
+              type="textarea"
+              lazy-rules
+              autogrow
+              dense
+              outlined
+              color="primary"
+            />
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item>
+        <q-item-section top>
+          <q-item-label>Project API Key</q-item-label>
+          <q-item-label>
+            <q-input
+              :model-value="settingsStore.projectApiKey as string"
+              @update:model-value="
+                DB.table(TableEnum.SETTINGS).put({
+                  id: SettingIdEnum.PROJECT_API_KEY,
+                  value: $event,
+                })
+              "
+              type="textarea"
+              lazy-rules
+              autogrow
+              dense
+              outlined
+              color="primary"
+            />
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item>
+        <q-item-section top>
+          <q-item-label>AI API Key</q-item-label>
+          <q-item-label>
+            <q-input
+              :model-value="settingsStore.aiApiKey as string"
+              @update:model-value="
+                DB.table(TableEnum.SETTINGS).put({
+                  id: SettingIdEnum.AI_API_KEY,
                   value: $event,
                 })
               "
@@ -196,7 +366,7 @@ function onDeleteDatabase() {
             <q-input
               :model-value="settingsStore.systemPrompt as string"
               @update:model-value="
-                SettingSI.putRecord({
+                DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.SYSTEM_PROMPT,
                   value: $event,
                 })
@@ -211,7 +381,7 @@ function onDeleteDatabase() {
               <template v-slot:append>
                 <q-icon
                   @click="
-                    SettingSI.putRecord({
+                    DB.table(TableEnum.SETTINGS).put({
                       id: SettingIdEnum.SYSTEM_PROMPT,
                       value: systemPrompt,
                     })
@@ -232,7 +402,7 @@ function onDeleteDatabase() {
             <q-input
               :model-value="settingsStore.userPrompt as string"
               @update:model-value="
-                SettingSI.putRecord({
+                DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.USER_PROMPT,
                   value: $event,
                 })
@@ -247,7 +417,7 @@ function onDeleteDatabase() {
               <template v-slot:append>
                 <q-icon
                   @click="
-                    SettingSI.putRecord({
+                    DB.table(TableEnum.SETTINGS).put({
                       id: SettingIdEnum.USER_PROMPT,
                       value: userPrompt,
                     })
@@ -268,7 +438,7 @@ function onDeleteDatabase() {
             <q-select
               :model-value="(settingsStore.maxTokens as number) ?? 2048"
               @update:model-value="
-                SettingSI.putRecord({
+                DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.MAX_TOKENS,
                   value: Number($event),
                 })
@@ -293,7 +463,7 @@ function onDeleteDatabase() {
                 (settingsStore.modelName as string) ?? 'gpt-4-turbo'
               "
               @update:model-value="
-                SettingSI.putRecord({
+                DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.MODEL_NAME,
                   value: Number($event),
                 })
@@ -305,9 +475,11 @@ function onDeleteDatabase() {
           </q-item-label>
         </q-item-section>
       </q-item>
+    </q-list>
 
-      <q-separator class="q-my-md" />
+    <q-separator />
 
+    <q-list padding>
       <q-item-label header>
         <q-icon class="on-left" size="sm" :name="optionsIcon" />
         Options
@@ -315,32 +487,9 @@ function onDeleteDatabase() {
 
       <q-item tag="label" :disable="$q.loading.isActive">
         <q-item-section top>
-          <q-item-label>Show Instructions</q-item-label>
+          <q-item-label>Show Info Popups</q-item-label>
           <q-item-label caption>
-            Redisplays the welcome message and app usage instructions.
-          </q-item-label>
-        </q-item-section>
-
-        <q-item-section side>
-          <q-toggle
-            :model-value="settingsStore.instructionsOverlay"
-            @update:model-value="
-              SettingSI.putRecord({
-                id: SettingIdEnum.INSTRUCTIONS_OVERLAY,
-                value: $event,
-              })
-            "
-            :disable="$q.loading.isActive"
-            size="lg"
-          />
-        </q-item-section>
-      </q-item>
-
-      <q-item tag="label" :disable="$q.loading.isActive">
-        <q-item-section top>
-          <q-item-label>Show Info Messages</q-item-label>
-          <q-item-label caption>
-            Show popup messages for actions that were completed.
+            Show informative popup messages for actions that were completed.
           </q-item-label>
         </q-item-section>
 
@@ -348,7 +497,7 @@ function onDeleteDatabase() {
           <q-toggle
             :model-value="settingsStore.infoMessages"
             @update:model-value="
-              SettingSI.putRecord({
+              DB.table(TableEnum.SETTINGS).put({
                 id: SettingIdEnum.INFO_MESSAGES,
                 value: $event,
               })
@@ -371,7 +520,7 @@ function onDeleteDatabase() {
           <q-toggle
             :model-value="settingsStore.consoleLogs"
             @update:model-value="
-              SettingSI.putRecord({
+              DB.table(TableEnum.SETTINGS).put({
                 id: SettingIdEnum.CONSOLE_LOGS,
                 value: $event,
               })
@@ -394,7 +543,7 @@ function onDeleteDatabase() {
           <q-select
             :model-value="settingsStore.logRetentionDuration"
             @update:model-value="
-              SettingSI.putRecord({
+              DB.table(TableEnum.SETTINGS).put({
                 id: SettingIdEnum.LOG_RETENTION_DURATION,
                 value: $event,
               })
@@ -408,18 +557,76 @@ function onDeleteDatabase() {
           />
         </q-item-section>
       </q-item>
+    </q-list>
 
-      <q-separator class="q-my-md" />
+    <q-separator />
 
+    <q-list padding>
+      <q-item-label header>
+        <q-icon class="on-left" size="sm" :name="dataTableIcon" />
+        Internal Data Tables
+      </q-item-label>
+
+      <q-item>
+        <q-btn
+          :disable="$q.loading.isActive"
+          class="col"
+          label="View Logs"
+          color="primary"
+          :icon="logsTableIcon"
+          @click="router.push({ name: RouteNameEnum.VIEW_LOGS })"
+        />
+      </q-item>
+
+      <q-item>
+        <q-btn
+          :disable="$q.loading.isActive"
+          class="col"
+          label="View Settings"
+          color="primary"
+          :icon="settingsTableIcon"
+          @click="router.push({ name: RouteNameEnum.VIEW_SETTINGS })"
+        />
+      </q-item>
+
+      <q-item>
+        <q-btn
+          :disable="$q.loading.isActive"
+          class="col"
+          label="View Prompts"
+          color="primary"
+          :icon="voiceIcon"
+          @click="router.push({ name: RouteNameEnum.VIEW_PROMPTS })"
+        />
+      </q-item>
+    </q-list>
+
+    <q-separator />
+
+    <q-list padding>
       <q-item-label header class="text-negative">
         <q-icon class="on-left" size="sm" :name="warnIcon" />
         Danger Zone
       </q-item-label>
 
-      <q-item-label header>
-        The following operations cannot be undone. Consider exporting your data
-        before proceeding.
-      </q-item-label>
+      <q-item>
+        <q-item-section top>
+          <q-item-label>Reset Settings</q-item-label>
+          <q-item-label caption>
+            Resets all settings to their default values. This will clear the API
+            keys.
+          </q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item class="q-mb-sm">
+        <q-btn
+          :icon="refreshIcon"
+          :disable="$q.loading.isActive"
+          color="warning"
+          @click="onResetSettings()"
+        />
+      </q-item>
 
       <q-item>
         <q-item-section top>
@@ -441,9 +648,10 @@ function onDeleteDatabase() {
 
       <q-item>
         <q-item-section top>
-          <q-item-label>Delete Data</q-item-label>
+          <q-item-label>Delete User Data</q-item-label>
           <q-item-label caption>
-            Permanently delete all configuration and user data from the app.
+            Permanently delete all user data from the app (images, items,
+            prompts). This does not delete any settings or logs.
           </q-item-label>
         </q-item-section>
       </q-item>
@@ -453,7 +661,7 @@ function onDeleteDatabase() {
           :icon="deleteXIcon"
           :disable="$q.loading.isActive"
           color="negative"
-          @click="onDeleteData()"
+          @click="onDeleteUserData()"
         />
       </q-item>
 
@@ -462,8 +670,8 @@ function onDeleteDatabase() {
           <q-item-label>Delete Database</q-item-label>
           <q-item-label caption>
             Delete the underlining browser database and all of its data
-            (requires app reload). This may be required if your app is having
-            database issues.
+            (requires app reload). Only required when making modifications to
+            the local database configuration (primarly the indexes).
           </q-item-label>
         </q-item-section>
       </q-item>

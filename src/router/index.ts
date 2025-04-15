@@ -1,10 +1,8 @@
 import LayoutMenu from '@/layouts/LayoutMenu.vue'
 import { RouteNameEnum } from '@/shared/enums'
-import { tableSchema } from '@/shared/schemas'
-import ViewImageSearch from '@/views/ViewImageSearch.vue'
 import ViewSearch from '@/views/ViewSearch.vue'
-import ViewTable from '@/views/ViewTable.vue'
-import ViewTabularSearch from '@/views/ViewTabularSearch.vue'
+import ViewSearchImages from '@/views/ViewSearchImages.vue'
+import ViewSearchItems from '@/views/ViewSearchItems.vue'
 import ViewUpload from '@/views/ViewUpload.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
@@ -42,30 +40,29 @@ const router = createRouter({
     },
     // Table routes are fullscreen and have no layout
     {
-      path: '/:table/table',
-      name: RouteNameEnum.TABLE,
-      component: ViewTable,
-      beforeEnter: (to: any, _: any, next: any) => {
-        const routeTable = to.params.table
-        const isRouteTable = tableSchema.safeParse(routeTable).success
-
-        if (!isRouteTable) {
-          return next({
-            name: RouteNameEnum.NOT_FOUND,
-          })
-        }
-        return next()
-      },
+      path: '/view-logs',
+      name: RouteNameEnum.VIEW_LOGS,
+      component: () => import('@/views/ViewLogsTable.vue'),
     },
     {
-      path: '/image-search',
-      name: RouteNameEnum.IMAGE_SEARCH,
-      component: ViewImageSearch,
+      path: '/view-settings',
+      name: RouteNameEnum.VIEW_SETTINGS,
+      component: () => import('@/views/ViewSettingsTable.vue'),
     },
     {
-      path: '/tabular-search',
-      name: RouteNameEnum.TABULAR_SEARCH,
-      component: ViewTabularSearch,
+      path: '/view-prompts',
+      name: RouteNameEnum.VIEW_PROMPTS,
+      component: () => import('@/views/ViewPromptsTable.vue'),
+    },
+    {
+      path: '/search/images',
+      name: RouteNameEnum.SEARCH_IMAGES,
+      component: ViewSearchImages,
+    },
+    {
+      path: '/search/items',
+      name: RouteNameEnum.SEARCH_ITEMS,
+      component: ViewSearchItems,
     },
   ],
 })
