@@ -16,7 +16,7 @@
     }
   ],
   "theme_color": "#1976D2",
-  "background_color": "#000000",
+  "background_color": "#1976D2",
   "display": "standalone",
   "start_url": "https://Zander-CTG.github.io/poc/"
 }

@@ -8,6 +8,7 @@ import { appName } from '@/shared/constants'
 import { TableEnum } from '@/shared/enums'
 import { importFileIcon } from '@/shared/icons'
 import type { IdType } from '@/shared/types'
+import { useBackend } from '@/stores/backend'
 import { useSettingsStore } from '@/stores/settings'
 import useLogger from '@/use/useLogger'
 import { QSpinnerGears, useMeta, useQuasar } from 'quasar'
@@ -18,6 +19,7 @@ useMeta({ title: `${appName} - Upload` })
 const $q = useQuasar()
 const { log } = useLogger()
 const settingsStore = useSettingsStore()
+const backendStore = useBackend()
 
 const importImage: Ref<File> = ref(null!)
 const imageUrl: Ref<string | null> = ref(null)
@@ -47,6 +49,42 @@ async function getBase64(file: File): Promise<string | null> {
     reader.onerror = (error) => reject(error)
     reader.readAsDataURL(file)
   })
+}
+
+/**
+ * Uploads an image to Supabase storage.
+ */
+async function uploadImageToStorage(
+  file: File,
+  imageId: string,
+): Promise<string | null> {
+  try {
+    const fileExt = file.name.substring(file.name.lastIndexOf('.'))
+    const userId = backendStore.user?.id
+    const filePath = `${userId}/${imageId}${fileExt}`
+
+    const { data, error } = await backendStore.supabase.storage
+      .from('mjoy-uploaded-images')
+      .upload(filePath, file)
+
+    if (error) {
+      throw error
+    }
+
+    log.info('File uploaded successfully', { data })
+
+    // Return the full public URL of the uploaded file
+    const {
+      data: { publicUrl },
+    } = backendStore.supabase.storage
+      .from('uploaded-images')
+      .getPublicUrl(filePath)
+
+    return publicUrl
+  } catch (error) {
+    log.error('Error uploading file to storage', error as Error)
+    return null
+  }
 }
 
 /**
@@ -139,6 +177,14 @@ async function processImage() {
       localImageRecord,
       localPromptRecord,
     )
+
+    // Upload image to Supabase storage
+    const localImageUrl = await uploadImageToStorage(
+      importImage.value,
+      localImageRecord.id,
+    )
+
+    log.info('Uploaded Image URL', { localImageUrl })
 
     // Store the updated records in the database
     await DB.table(TableEnum.IMAGES).update(
