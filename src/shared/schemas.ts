@@ -23,6 +23,8 @@ export const idSchema = z.string().refine(
     // Trim off prefix and check if uuid is valid
     // Does not validate if the prefix used is correct
     if (z.string().uuid().safeParse(id.substring(4)).success) {
+      return true // prefix uuid valid
+    } else if (z.string().uuid().safeParse(id).success) {
       return true // uuid valid
     } else if (settingIdSchema.safeParse(id).success) {
       return true // setting id valid

@@ -8,6 +8,7 @@ import { appName } from '@/shared/constants'
 import { TableEnum } from '@/shared/enums'
 import { importFileIcon } from '@/shared/icons'
 import type { IdType } from '@/shared/types'
+import { useBackend } from '@/stores/backend'
 import { useSettingsStore } from '@/stores/settings'
 import useLogger from '@/use/useLogger'
 import { QSpinnerGears, useMeta, useQuasar } from 'quasar'
@@ -18,6 +19,7 @@ useMeta({ title: `${appName} - Upload` })
 const $q = useQuasar()
 const { log } = useLogger()
 const settingsStore = useSettingsStore()
+const backendStore = useBackend()
 
 const importImage: Ref<File> = ref(null!)
 const imageUrl: Ref<string | null> = ref(null)
@@ -198,6 +200,50 @@ function processResponseItems(
     })
   })
 }
+
+/**
+ * TODO
+ */
+async function supabaseTest() {
+  const { supabase, user } = backendStore
+  try {
+    const record = {
+      owner_user_id: user?.id,
+    }
+    log.print('Inserting Record', {
+      record,
+      user,
+    })
+
+    // Create initial metadata record to get id
+    const { data: imageMetadataRecords, error: metadataError } = await supabase
+      .from('mjoy_image_metadata')
+      .insert(record)
+      .select()
+
+    if (metadataError) {
+      throw metadataError
+    }
+
+    const imageMetadataRecord = imageMetadataRecords?.[0]
+
+    // Upload file to storage
+    const { data: fileData, error: fileError } = await supabase.storage
+      .from('mjoy-uploaded-images')
+      .upload(
+        `${imageMetadataRecord.owner_user_id}/${imageMetadataRecord.id}`,
+        importImage.value,
+      )
+
+    if (fileError) {
+      throw fileError
+    }
+
+    log.info('Inserted record', { imageMetadataRecord, fileData })
+  } catch (error) {
+    log.error('Error inserting record', error as Error)
+  }
+}
 </script>
 
 <template>
@@ -230,7 +276,7 @@ function processResponseItems(
             clearable
             dense
             outlined
-            accept="image/jpeg,image/png"
+            accept="image/*"
             @rejected="onRejectedFile"
           >
             <template v-slot:before>
@@ -239,6 +285,30 @@ function processResponseItems(
                 :icon="importFileIcon"
                 color="primary"
                 @click="processImage()"
+              />
+            </template>
+          </q-file>
+        </q-item-section>
+      </q-item>
+
+      <q-item class="q-mb-sm">
+        <q-item-section top>
+          <q-file
+            v-model="importImage"
+            :disable="$q.loading.isActive"
+            label="Supabase Test"
+            clearable
+            dense
+            outlined
+            accept="image/*"
+            @rejected="onRejectedFile"
+          >
+            <template v-slot:before>
+              <q-btn
+                :disable="!importImage || $q.loading.isActive"
+                :icon="importFileIcon"
+                color="primary"
+                @click="supabaseTest()"
               />
             </template>
           </q-file>
