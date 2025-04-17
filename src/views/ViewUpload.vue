@@ -52,42 +52,6 @@ async function getBase64(file: File): Promise<string | null> {
 }
 
 /**
- * Uploads an image to Supabase storage.
- */
-async function uploadImageToStorage(
-  file: File,
-  imageId: string,
-): Promise<string | null> {
-  try {
-    const fileExt = file.name.substring(file.name.lastIndexOf('.'))
-    const userId = backendStore.user?.id
-    const filePath = `${userId}/${imageId}${fileExt}`
-
-    const { data, error } = await backendStore.supabase.storage
-      .from('mjoy-uploaded-images')
-      .upload(filePath, file)
-
-    if (error) {
-      throw error
-    }
-
-    log.info('File uploaded successfully', { data })
-
-    // Return the full public URL of the uploaded file
-    const {
-      data: { publicUrl },
-    } = backendStore.supabase.storage
-      .from('uploaded-images')
-      .getPublicUrl(filePath)
-
-    return publicUrl
-  } catch (error) {
-    log.error('Error uploading file to storage', error as Error)
-    return null
-  }
-}
-
-/**
  * Processes the uploaded image and saves the resulting records to the database.
  */
 async function processImage() {
@@ -178,14 +142,6 @@ async function processImage() {
       localPromptRecord,
     )
 
-    // Upload image to Supabase storage
-    const localImageUrl = await uploadImageToStorage(
-      importImage.value,
-      localImageRecord.id,
-    )
-
-    log.info('Uploaded Image URL', { localImageUrl })
-
     // Store the updated records in the database
     await DB.table(TableEnum.IMAGES).update(
       localImageRecord.id,
@@ -244,6 +200,50 @@ function processResponseItems(
     })
   })
 }
+
+/**
+ * TODO
+ */
+async function supabaseTest() {
+  const { supabase, user } = backendStore
+  try {
+    const record = {
+      owner_user_id: user?.id,
+    }
+    log.print('Inserting Record', {
+      record,
+      user,
+    })
+
+    // Create initial metadata record to get id
+    const { data: imageMetadataRecords, error: metadataError } = await supabase
+      .from('mjoy_image_metadata')
+      .insert(record)
+      .select()
+
+    if (metadataError) {
+      throw metadataError
+    }
+
+    const imageMetadataRecord = imageMetadataRecords?.[0]
+
+    // Upload file to storage
+    const { data: fileData, error: fileError } = await supabase.storage
+      .from('mjoy-uploaded-images')
+      .upload(
+        `${imageMetadataRecord.owner_user_id}/${imageMetadataRecord.id}`,
+        importImage.value,
+      )
+
+    if (fileError) {
+      throw fileError
+    }
+
+    log.info('Inserted record', { imageMetadataRecord, fileData })
+  } catch (error) {
+    log.error('Error inserting record', error as Error)
+  }
+}
 </script>
 
 <template>
@@ -276,7 +276,7 @@ function processResponseItems(
             clearable
             dense
             outlined
-            accept="image/jpeg,image/png"
+            accept="image/*"
             @rejected="onRejectedFile"
           >
             <template v-slot:before>
@@ -285,6 +285,30 @@ function processResponseItems(
                 :icon="importFileIcon"
                 color="primary"
                 @click="processImage()"
+              />
+            </template>
+          </q-file>
+        </q-item-section>
+      </q-item>
+
+      <q-item class="q-mb-sm">
+        <q-item-section top>
+          <q-file
+            v-model="importImage"
+            :disable="$q.loading.isActive"
+            label="Supabase Test"
+            clearable
+            dense
+            outlined
+            accept="image/*"
+            @rejected="onRejectedFile"
+          >
+            <template v-slot:before>
+              <q-btn
+                :disable="!importImage || $q.loading.isActive"
+                :icon="importFileIcon"
+                color="primary"
+                @click="supabaseTest()"
               />
             </template>
           </q-file>
