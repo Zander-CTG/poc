@@ -27,7 +27,6 @@ import {
 import { useBackend } from '@/stores/backend'
 import { useSettingsStore } from '@/stores/settings'
 import useLogger from '@/use/useLogger'
-import { createClient } from '@supabase/supabase-js'
 import { QSpinnerGears, useMeta, useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 
@@ -37,7 +36,8 @@ const $q = useQuasar()
 const router = useRouter()
 const { log } = useLogger()
 const settingsStore = useSettingsStore()
-const backendStore = useBackend()
+const { initializeClient, loginUser, hasUser, getUserId, getUserEmail } =
+  useBackend()
 
 const modelOptions = ['gpt-4-turbo']
 const logDurationsOptions = [
@@ -188,16 +188,9 @@ async function onAuthenticate() {
     } else if (!password) {
       log.error('User password is missing')
     } else {
-      // Connect to Supabase
-      backendStore.supabase = createClient(projectUrl, projectApiKey)
-      await backendStore.supabase.auth.signOut() // Sign out any existing user
-      const user = await backendStore.supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      log.info('User authenticated successfully', { user: user.data.user })
-      // Store user
-      backendStore.user = user.data.user
+      initializeClient(projectUrl, projectApiKey)
+      const user = await loginUser(email, password)
+      log.info('User authenticated successfully', { user })
     }
   } catch (error) {
     log.error('Error during authentication', error as Error)
@@ -269,14 +262,14 @@ async function onAuthenticate() {
         />
       </q-item>
 
-      <q-item v-if="backendStore.user?.id">
+      <q-item v-if="hasUser()">
         <q-item-section top>
           <q-item-label>Current User</q-item-label>
-          <q-item-label v-if="backendStore.user?.id" caption>
-            {{ backendStore.user.id }}
+          <q-item-label caption>
+            {{ getUserId() }}
           </q-item-label>
-          <q-item-label v-if="backendStore.user?.email" caption>
-            {{ backendStore.user.email }}
+          <q-item-label caption>
+            {{ getUserEmail() }}
           </q-item-label>
         </q-item-section>
       </q-item>

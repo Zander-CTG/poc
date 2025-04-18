@@ -1,21 +1,17 @@
 <script setup lang="ts">
-import type { ParentImage } from '@/models/Image'
-import type { ChildItem } from '@/models/Item'
-import { DB } from '@/services/db'
-import { TableEnum } from '@/shared/enums'
 import { closeIcon, inspectIcon } from '@/shared/icons'
-import type { IdType } from '@/shared/types'
-import { truncateText } from '@/shared/utils'
 import { useRecordStore } from '@/stores/record'
 import useLogger from '@/use/useLogger'
 import { useDialogPluginComponent } from 'quasar'
-import { onMounted, onUnmounted, ref, type Ref } from 'vue'
-import InspectItemDate from './inspect/InspectItemDate.vue'
-import InspectItemList from './inspect/InspectItemList.vue'
-import InspectItemString from './inspect/InspectItemString.vue'
+import { onMounted, onUnmounted } from 'vue'
 
 const props = defineProps<{
-  id: IdType
+  record: {
+    id: string
+    metadata: Record<string, any>
+    url: string
+    created_at: string
+  }
 }>()
 
 defineEmits([...useDialogPluginComponent.emits])
@@ -24,25 +20,9 @@ const { dialogRef, onDialogHide, onDialogCancel } = useDialogPluginComponent()
 const { log } = useLogger()
 const recordStore = useRecordStore()
 
-const imageUrl: Ref<string | null> = ref(null)
-
 onMounted(async () => {
   try {
-    recordStore.record = (await DB.table(TableEnum.IMAGES)
-      .where('id')
-      .equals(props.id)
-      .first()) as ParentImage
-
-    const items = (await DB.table(TableEnum.ITEMS)
-      .where('image_id')
-      .equals(props.id)
-      .toArray()) as ChildItem[]
-
-    recordStore.items = items
-
-    if (recordStore.record?.file) {
-      imageUrl.value = URL.createObjectURL(recordStore.record.file)
-    }
+    recordStore.record = props.record
   } catch (error) {
     log.error('Error loading record', error as Error)
   }
@@ -72,29 +52,29 @@ onUnmounted(() => {
         <div class="row justify-center">
           <div class="responsive-container">
             <q-list padding>
-              <q-item v-if="imageUrl" class="q-mb-sm">
+              <q-item v-if="record?.url" class="q-mb-sm">
                 <q-item-section top>
                   <q-item-label>
-                    <img
-                      :src="imageUrl"
+                    <q-img
+                      :src="record.url"
                       alt="Uploaded Image"
-                      style="max-width: 100%"
+                      class="uploaded-image"
                     />
                   </q-item-label>
                 </q-item-section>
               </q-item>
 
-              <div v-if="recordStore.record">
+              <!-- <div v-if="recordStore.record">
                 <InspectItemString label="Id" recordKey="id" />
                 <InspectItemDate label="Created Date" recordKey="createdAt" />
                 <InspectItemList
                   label="Visible Text"
                   recordKey="visible_text"
                 />
-              </div>
+              </div> -->
             </q-list>
 
-            <q-separator />
+            <!-- <q-separator />
 
             <q-list padding>
               <q-item
@@ -113,7 +93,7 @@ onUnmounted(() => {
                   <q-item-label caption>{{ item.description }}</q-item-label>
                 </q-item-section>
               </q-item>
-            </q-list>
+            </q-list> -->
             <div class="q-mt-xl" />
           </div>
         </div>
@@ -123,6 +103,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.uploaded-image {
+  max-width: 100%;
+  object-fit: contain;
+}
 .toolbar-height {
   max-height: 50px;
 }
