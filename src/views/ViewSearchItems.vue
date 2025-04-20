@@ -1,8 +1,14 @@
 <script setup lang="ts">
+import DialogConfirm from '@/components/dialogs/DialogConfirm.vue'
 import DialogInspectItem from '@/components/dialogs/DialogInspectItem.vue'
 import { appName } from '@/shared/constants'
-import { closeIcon, columnsIcon, itemsIcon, searchIcon } from '@/shared/icons'
-import type { IdType } from '@/shared/types'
+import {
+  closeIcon,
+  columnsIcon,
+  deleteIcon,
+  itemsIcon,
+  searchIcon,
+} from '@/shared/icons'
 import {
   columnOptionsFromTableColumns,
   hiddenTableColumn,
@@ -10,30 +16,33 @@ import {
   tableColumn,
   visibleColumnsFromTableColumns,
 } from '@/shared/utils'
+import { useBackend } from '@/stores/backend'
 import useLogger from '@/use/useLogger'
 import useRouting from '@/use/useRouting'
 import { useMeta, useQuasar, type QTableColumn } from 'quasar'
 import { onMounted, ref, type Ref } from 'vue'
 
-useMeta({ title: `${appName} - Data Table` })
+useMeta({ title: `${appName} - Search Items` })
 
 const $q = useQuasar()
 const { log } = useLogger()
 const { goBack } = useRouting()
+const { fetchItems, deleteItem } = useBackend()
 
-const items: Ref<Record<string, any>[]> = ref([]) // TODO: Replace with actual data type
+const itemRecords: Ref<Record<string, any>[]> = ref([])
 
 const searchFilter: Ref<string> = ref('')
 const tableColumns = [
   hiddenTableColumn('id'),
-  // tableColumn('id', 'Id', 'UUID'),
-  // tableColumn('image_id', 'Image Id', 'UUID'),
-  tableColumn('createdAt', 'Created Date', 'DATE'),
-  tableColumn('type', 'Type', 'TEXT'),
-  tableColumn('categories', 'Categories', 'LONG-LIST-PRINT'),
-  tableColumn('brand', 'Brand', 'TEXT'),
   tableColumn('label', 'Label', 'TEXT'),
+  tableColumn('brand', 'Brand', 'TEXT'),
+  tableColumn('type', 'Type', 'TEXT'),
   tableColumn('description', 'Description', 'LONG-TEXT'),
+  tableColumn('categories', 'Categories', 'LONG-LIST-PRINT'),
+  tableColumn('created_at', 'Created Date', 'TEXT'),
+  tableColumn('image_metadata_id', 'Image Id', 'UUID'),
+  tableColumn('user_id', 'User Id', 'UUID'),
+  tableColumn('id', 'Id', 'UUID'),
 ]
 const columnOptions: Ref<QTableColumn[]> = ref(
   columnOptionsFromTableColumns(tableColumns),
@@ -44,16 +53,40 @@ const visibleColumns: Ref<string[]> = ref(
 
 onMounted(async () => {
   try {
-    // itemRecords.value = await loadItems() // TODO
+    itemRecords.value = await fetchItems()
   } catch (error) {
     log.error('Error loading images', error as Error)
   }
 })
 
-function onInspect(id: IdType) {
+function onInspect(row: Record<string, any>) {
   $q.dialog({
     component: DialogInspectItem,
-    componentProps: { id },
+    componentProps: { record: row },
+  })
+}
+
+async function onDeleteItem(row: Record<string, any>) {
+  $q.dialog({
+    component: DialogConfirm,
+    componentProps: {
+      title: 'Delete Item',
+      message: 'Are you sure you want to delete this item?',
+      color: 'negative',
+      icon: deleteIcon,
+      requiresUnlock: false,
+    },
+  }).onOk(async () => {
+    try {
+      $q.loading.show()
+      await deleteItem(row.id)
+      itemRecords.value = itemRecords.value.filter((item) => item.id !== row.id)
+      log.info('Successfully deleted item')
+    } catch (error) {
+      log.error(`Error deleting item`, error as Error)
+    } finally {
+      $q.loading.hide()
+    }
   })
 }
 </script>
@@ -61,7 +94,7 @@ function onInspect(id: IdType) {
 <template>
   <q-table
     fullscreen
-    :rows="items"
+    :rows="itemRecords"
     :columns="tableColumns"
     :visible-columns="visibleColumns"
     :rows-per-page-options="[0]"
@@ -79,17 +112,29 @@ function onInspect(id: IdType) {
         >
           {{ col.label }}
         </q-th>
+        <q-th auto-width class="text-left">Actions</q-th>
       </q-tr>
     </template>
 
     <template v-slot:body="props">
-      <q-tr
-        :props="props"
-        class="cursor-pointer"
-        @click="onInspect(props.row.id)"
-      >
-        <q-td v-for="col in props.cols" :key="col.name" :props="props">
+      <q-tr :props="props">
+        <q-td
+          v-for="col in props.cols"
+          :key="col.name"
+          :props="props"
+          class="cursor-pointer"
+          @click="onInspect(props.row)"
+        >
           {{ col.value }}
+        </q-td>
+        <q-td>
+          <q-btn
+            round
+            size="sm"
+            color="negative"
+            :icon="deleteIcon"
+            @click="onDeleteItem(props.row)"
+          />
         </q-td>
       </q-tr>
     </template>
@@ -112,7 +157,7 @@ function onInspect(id: IdType) {
 
       <div class="row justify-start full-width">
         <q-input
-          :disable="!items.length"
+          :disable="!itemRecords.length"
           outlined
           dense
           clearable
@@ -125,7 +170,7 @@ function onInspect(id: IdType) {
             <q-select
               v-model="visibleColumns"
               :options="columnOptions"
-              :disable="!items.length"
+              :disable="!itemRecords.length"
               multiple
               dense
               options-dense
@@ -149,7 +194,7 @@ function onInspect(id: IdType) {
     </template>
 
     <template v-slot:bottom>
-      {{ recordsCount(items, 'Item', 'Items') }}
+      {{ recordsCount(itemRecords, 'Item', 'Items') }}
     </template>
   </q-table>
 </template>

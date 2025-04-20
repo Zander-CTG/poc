@@ -138,7 +138,7 @@ export const useBackend = defineStore('backend', () => {
 
     // Save image to database
     const { data: imageMetadataRecords, error: imageMetadataError } =
-      await supabase.value.from('mjoy_image_metadata').insert({}).select()
+      await supabase.value.from('sandbox_image_metadata').insert({}).select()
 
     if (imageMetadataError)
       throw new Error(
@@ -149,11 +149,8 @@ export const useBackend = defineStore('backend', () => {
 
     // Save image record to storage
     const { error: imageError } = await supabase.value.storage
-      .from('mjoy-uploaded-images')
-      .upload(
-        `${imageMetadataRecord.owner_user_id}/${imageMetadataRecord.id}`,
-        image,
-      )
+      .from('sandbox-uploaded-images')
+      .upload(`${imageMetadataRecord.user_id}/${imageMetadataRecord.id}`, image)
 
     if (imageError)
       throw new Error(`Error uploading image: ${imageError.message}`)
@@ -186,7 +183,7 @@ export const useBackend = defineStore('backend', () => {
 
     // Update the image_metadata record with the visible text array
     const { data: updatedImage, error: updateError } = await supabase.value
-      .from('mjoy_image_metadata')
+      .from('sandbox_image_metadata')
       .update({ visible_text: visibleText })
       .eq('id', imageMetadataRecord.id)
       .select()
@@ -201,7 +198,7 @@ export const useBackend = defineStore('backend', () => {
     }))
 
     const { data: insertedItems, error: insertError } = await supabase.value
-      .from('mjoy_items')
+      .from('sandbox_items')
       .insert(preparedItems)
       .select()
 
@@ -214,6 +211,148 @@ export const useBackend = defineStore('backend', () => {
     }
   }
 
+  const fetchImages = async () => {
+    initSupabase()
+
+    const { data: userData } = await supabase.value.auth.getUser()
+    if (!userData?.user) throw new Error('User not authenticated')
+
+    const userId = userData.user.id
+
+    const { data: metadata, error: metadataError } = await supabase.value
+      .from('sandbox_image_metadata')
+      .select('*')
+      .eq('user_id', userId) // Filter by user ID
+      .order('created_at', { ascending: false })
+
+    if (metadataError)
+      throw new Error(`Error fetching images: ${metadataError.message}`)
+
+    // For each metadata record, get the corresponding image URL
+    const imagesWithUrls = await Promise.all(
+      metadata.map(async (imageData) => {
+        // Get a signed URL for the image that expires in 1 hour (3600 seconds)
+        const { data: signedData, error: signedError } =
+          await supabase.value.storage
+            .from('sandbox-uploaded-images')
+            .createSignedUrl(`${userId}/${imageData.id}`, 3600)
+
+        if (signedError) {
+          console.error(
+            `Error creating signed URL for image ${imageData.id}:`,
+            signedError,
+          )
+          return {
+            metadata_record: imageData,
+            url: null, // Return null if we couldn't get a URL
+          }
+        }
+
+        return {
+          ...imageData,
+          url: signedData.signedUrl,
+        }
+      }),
+    )
+
+    return imagesWithUrls
+  }
+
+  const fetchImageItems = async (imageId: string) => {
+    initSupabase()
+
+    const { data, error } = await supabase.value
+      .from('sandbox_items')
+      .select('*')
+      .eq('image_metadata_id', imageId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw new Error(`Error fetching image items: ${error.message}`)
+
+    return data
+  }
+
+  const fetchItems = async () => {
+    initSupabase()
+
+    const { data: userData } = await supabase.value.auth.getUser()
+    if (!userData?.user) throw new Error('User not authenticated')
+
+    const userId = userData.user.id
+
+    const { data, error } = await supabase.value
+      .from('sandbox_items')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw new Error(`Error fetching items: ${error.message}`)
+
+    return data
+  }
+
+  const fetchSingleImage = async (imageId: string) => {
+    initSupabase()
+
+    const { data: userData } = await supabase.value.auth.getUser()
+    if (!userData?.user) throw new Error('User not authenticated')
+
+    const userId = userData.user.id
+
+    const { data: signedData, error: signedError } =
+      await supabase.value.storage
+        .from('sandbox-uploaded-images')
+        .createSignedUrl(`${userId}/${imageId}`, 3600)
+
+    if (signedError) {
+      throw new Error(
+        `Error creating signed URL for image ${imageId}: ${signedError.message}`,
+      )
+    }
+
+    return signedData
+  }
+
+  const deleteImage = async (imageId: string) => {
+    initSupabase()
+
+    const { data: userData } = await supabase.value.auth.getUser()
+    if (!userData?.user) throw new Error('User not authenticated')
+
+    const userId = userData.user.id
+
+    const { error: deleteError } = await supabase.value
+      .from('sandbox_image_metadata')
+      .delete()
+      .eq('id', imageId)
+
+    if (deleteError)
+      throw new Error(`Error deleting image record: ${deleteError.message}`)
+
+    // Delete image from storage {user_id}/{image_id}
+    const { error: deleteItemsError } = await supabase.value.storage
+      .from('sandbox-uploaded-images')
+      .remove([`${userId}/${imageId}`])
+
+    if (deleteItemsError)
+      throw new Error(
+        `Error deleting image from storage: ${deleteItemsError.message}`,
+      )
+  }
+
+  const deleteItem = async (itemId: string) => {
+    initSupabase()
+
+    const { error } = await supabase.value
+      .from('sandbox_items')
+      .delete()
+      .eq('id', itemId)
+
+    if (error) throw new Error(`Error deleting item: ${error.message}`)
+
+    return true
+  }
+
   // -----Getters
 
   return {
@@ -223,5 +362,11 @@ export const useBackend = defineStore('backend', () => {
     loginUser,
     logoutUser,
     uploadAndProcessImage,
+    fetchImages,
+    fetchImageItems,
+    fetchSingleImage,
+    fetchItems,
+    deleteImage,
+    deleteItem,
   }
 })

@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import DialogConfirm from '@/components/dialogs/DialogConfirm.vue'
 import DialogInspectImage from '@/components/dialogs/DialogInspectImage.vue'
-import type { ParentImage } from '@/models/Image'
 import { appName } from '@/shared/constants'
-import { closeIcon, itemsIcon } from '@/shared/icons'
-import { recordsCount } from '@/shared/utils'
+import { closeIcon, deleteIcon, itemsIcon } from '@/shared/icons'
+import { recordsCount, truncateText } from '@/shared/utils'
+import { useBackend } from '@/stores/backend'
 import useLogger from '@/use/useLogger'
 import useRouting from '@/use/useRouting'
 import { useMeta, useQuasar } from 'quasar'
@@ -14,31 +15,59 @@ useMeta({ title: `${appName} - Search Images` })
 const $q = useQuasar()
 const { log } = useLogger()
 const { goBack } = useRouting()
+const { fetchImages, deleteImage } = useBackend()
 
 const searchFilter: Ref<string> = ref('')
 
-// TODO
 const imageRecords: Ref<
   {
     id: string
-    metadata: Record<string, any>
-    url: string
+    user_id: string
+    visible_text: string[]
     created_at: string
+    url: string
   }[]
 > = ref([])
 
 onMounted(async () => {
   try {
-    // imageRecords.value = await loadImages() // TODO
+    imageRecords.value = await fetchImages()
   } catch (error) {
     log.error('Error loading images', error as Error)
   }
 })
 
-function onInspect(row: ParentImage) {
+function onInspect(row: Record<string, any>) {
   $q.dialog({
     component: DialogInspectImage,
     componentProps: { record: row },
+  })
+}
+
+async function onDeleteImage(row: Record<string, any>) {
+  $q.dialog({
+    component: DialogConfirm,
+    componentProps: {
+      title: 'Delete Image',
+      message:
+        'Are you sure you want to delete this image and its associated items?',
+      color: 'negative',
+      icon: deleteIcon,
+      requiresUnlock: false,
+    },
+  }).onOk(async () => {
+    try {
+      $q.loading.show()
+      await deleteImage(row.id)
+      imageRecords.value = imageRecords.value.filter(
+        (image) => image.id !== row.id,
+      )
+      log.info('Successfully deleted image')
+    } catch (error) {
+      log.error(`Error deleting image`, error as Error)
+    } finally {
+      $q.loading.hide()
+    }
   })
 }
 </script>
@@ -55,14 +84,34 @@ function onInspect(row: ParentImage) {
   >
     <template v-slot:item="props">
       <div class="q-pa-xs col-xs-12 col-sm-6 col-md-4 col-lg-3">
-        <q-card flat>
-          <q-img
-            v-if="props.row.url"
-            :src="props.row.url"
-            alt="Uploaded Image"
-            class="uploaded-image cursor-pointer"
-            @click="onInspect(props.row)"
-          />
+        <q-card>
+          <q-card-section class="q-px-none q-pt-none q-pb-sm">
+            <q-img
+              v-if="props.row.url"
+              :src="props.row.url"
+              alt="Uploaded Image"
+              class="uploaded-image cursor-pointer"
+              @click="onInspect(props.row)"
+            />
+          </q-card-section>
+
+          <q-card-section
+            v-if="props.row?.visible_text?.length"
+            class="q-pa-sm"
+          >
+            <div class="text-caption">
+              {{ truncateText(props.row.visible_text?.join(', '), 250, '...') }}
+            </div>
+          </q-card-section>
+
+          <q-card-actions vertical class="q-pa-sm">
+            <q-btn
+              color="negative"
+              label="Delete"
+              :icon="deleteIcon"
+              @click="onDeleteImage(props.row)"
+            />
+          </q-card-actions>
         </q-card>
       </div>
     </template>

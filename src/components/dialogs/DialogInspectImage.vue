@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import InspectItemList from '@/components/dialogs/inspect/InspectItemList.vue'
+import InspectItemString from '@/components/dialogs/inspect/InspectItemString.vue'
 import { closeIcon, inspectIcon } from '@/shared/icons'
+import { truncateText } from '@/shared/utils'
+import { useBackend } from '@/stores/backend'
 import { useRecordStore } from '@/stores/record'
 import useLogger from '@/use/useLogger'
 import { useDialogPluginComponent } from 'quasar'
@@ -8,9 +12,10 @@ import { onMounted, onUnmounted } from 'vue'
 const props = defineProps<{
   record: {
     id: string
-    metadata: Record<string, any>
-    url: string
+    user_id: string
+    visible_text: string[]
     created_at: string
+    url: string
   }
 }>()
 
@@ -19,10 +24,12 @@ const { dialogRef, onDialogHide, onDialogCancel } = useDialogPluginComponent()
 
 const { log } = useLogger()
 const recordStore = useRecordStore()
+const { fetchImageItems } = useBackend()
 
 onMounted(async () => {
   try {
     recordStore.record = props.record
+    recordStore.items = await fetchImageItems(props.record.id)
   } catch (error) {
     log.error('Error loading record', error as Error)
   }
@@ -52,29 +59,30 @@ onUnmounted(() => {
         <div class="row justify-center">
           <div class="responsive-container">
             <q-list padding>
-              <q-item v-if="record?.url" class="q-mb-sm">
-                <q-item-section top>
-                  <q-item-label>
-                    <q-img
-                      :src="record.url"
-                      alt="Uploaded Image"
-                      class="uploaded-image"
-                    />
-                  </q-item-label>
-                </q-item-section>
+              <q-item>
+                <q-img
+                  v-if="record?.url"
+                  :src="record.url"
+                  alt="Uploaded Image"
+                  class="uploaded-image"
+                />
               </q-item>
 
-              <!-- <div v-if="recordStore.record">
+              <div v-if="recordStore.record">
                 <InspectItemString label="Id" recordKey="id" />
-                <InspectItemDate label="Created Date" recordKey="createdAt" />
+                <InspectItemString label="User Id" recordKey="user_id" />
+                <InspectItemString
+                  label="Created Date"
+                  recordKey="created_at"
+                />
                 <InspectItemList
                   label="Visible Text"
                   recordKey="visible_text"
                 />
-              </div> -->
+              </div>
             </q-list>
 
-            <!-- <q-separator />
+            <q-separator />
 
             <q-list padding>
               <q-item
@@ -93,7 +101,7 @@ onUnmounted(() => {
                   <q-item-label caption>{{ item.description }}</q-item-label>
                 </q-item-section>
               </q-item>
-            </q-list> -->
+            </q-list>
             <div class="q-mt-xl" />
           </div>
         </div>

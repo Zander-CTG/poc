@@ -66,15 +66,7 @@ async function onUploadImage() {
           <q-item-label>Image Uploader</q-item-label>
           <q-item-label caption>
             Add items by choosing an image to upload and have the contents
-            processed by the AI. The following fields will be populated based on
-            the image content:
-            <ul>
-              <li>Type</li>
-              <li>Brand</li>
-              <li>Label</li>
-              <li>Description</li>
-              <li>Categories</li>
-            </ul>
+            processed by AI to determine whats in the image.
           </q-item-label>
         </q-item-section>
       </q-item>
