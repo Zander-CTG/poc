@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import {
-  DurationEnum,
   LimitEnum,
   LogLevelEnum,
   RouteNameEnum,
@@ -49,12 +48,7 @@ export const textAreaSchema = z.string().max(LimitEnum.MAX_TEXT_AREA).trim() // 
 //
 
 export const settingIdSchema = z.nativeEnum(SettingIdEnum)
-export const settingValueSchema = z.union([
-  z.boolean(),
-  z.string(),
-  z.number(),
-  z.nativeEnum(DurationEnum),
-])
+export const settingValueSchema = z.union([z.boolean(), z.string(), z.number()])
 export const settingSchema = z.object({
   id: settingIdSchema, // Instead of standard ID
   value: settingValueSchema,

@@ -23,7 +23,7 @@ export default function useLogger() {
     error: `${baseStyle} ${colors.getPaletteColor('negative')};`,
   }
 
-  const settingsStore = useSettingsStore() // Use the Pinia settings store
+  const { getConsoleLogsSetting, getInfoPopupsSetting } = useSettingsStore() // Use the Pinia settings store
 
   const log = {
     /**
@@ -62,7 +62,7 @@ export default function useLogger() {
     },
 
     info: async (name: string, details?: LogDetailsType) => {
-      if (settingsStore.consoleLogs) {
+      if (getConsoleLogsSetting()) {
         console.log(
           loggerName,
           style.info,
@@ -77,13 +77,13 @@ export default function useLogger() {
         details,
       })
       await DB.table(TableEnum.LOGS).add(log)
-      if (settingsStore.infoMessages) {
+      if (getInfoPopupsSetting()) {
         notify({ message: name, icon: infoIcon, color: 'info' })
       }
     },
 
     warn: async (name: string, details?: LogDetailsType) => {
-      if (settingsStore.consoleLogs) {
+      if (getConsoleLogsSetting()) {
         console.warn(
           loggerName,
           style.warn,
@@ -102,7 +102,7 @@ export default function useLogger() {
     },
 
     error: async (name: string, details?: LogDetailsType) => {
-      if (settingsStore.consoleLogs) {
+      if (getConsoleLogsSetting()) {
         console.error(
           loggerName,
           style.error,

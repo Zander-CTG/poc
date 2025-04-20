@@ -6,6 +6,7 @@ import useLogger from '@/use/useLogger'
 import { colors, useMeta, useQuasar } from 'quasar'
 import { onMounted, onUnmounted } from 'vue'
 import { RouterView } from 'vue-router'
+import DialogAuthOverlay from './components/dialogs/DialogAuthOverlay.vue'
 import { DB } from './services/db'
 
 /**
@@ -59,7 +60,7 @@ const subscription = DB.liveSettings().subscribe({
 
 onMounted(async () => {
   try {
-    await DB.initializeSettingsOnStartup()
+    await DB.initializeSettings()
   } catch (error) {
     // Output the error and notify user since it could be a database or logger failure
     notify({
@@ -71,7 +72,7 @@ onMounted(async () => {
   }
 
   try {
-    const logsDeleted = await DB.deleteExpiredLogsOnStartup()
+    const logsDeleted = await DB.deleteExpiredLogs()
     log.silentDebug('Expired logs deleted', { logsDeleted })
   } catch (error) {
     log.error('Error deleting expired logs', error as Error)
@@ -84,5 +85,6 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <DialogAuthOverlay />
   <RouterView />
 </template>

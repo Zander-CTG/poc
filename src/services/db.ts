@@ -53,26 +53,26 @@ export class Database extends Dexie {
    * overwritten. If the settings do not exist, they are created with default values.
    * @note This MUST be called in `App.vue` on startup
    */
-  async initializeSettingsOnStartup(): Promise<void> {
+  async initializeSettings(): Promise<void> {
     const defaultSettings: {
       [key in SettingIdEnum]: SettingValueType
     } = {
+      // For App
+      [SettingIdEnum.CONSOLE_LOGS]: false,
+      [SettingIdEnum.INFO_POPUPS]: true,
+      [SettingIdEnum.LOG_RETENTION_DURATION]:
+        DurationEnum[DurationEnum['Six Months']],
+      [SettingIdEnum.LOGIN_OVERLAY]: false,
+      // For Supabase
       [SettingIdEnum.USER_EMAIL]: '',
-      [SettingIdEnum.USER_PASSWORD]: '',
-      //
       [SettingIdEnum.PROJECT_URL]: '',
-      [SettingIdEnum.PROJECT_API_KEY]: '',
-      //
-      [SettingIdEnum.AI_API_KEY]: '',
+      [SettingIdEnum.PROJECT_ANON_API_KEY]: '',
+      // For OpenAI
+      [SettingIdEnum.OPENAI_API_KEY]: '',
       [SettingIdEnum.SYSTEM_PROMPT]: systemPrompt,
       [SettingIdEnum.USER_PROMPT]: userPrompt,
       [SettingIdEnum.MAX_TOKENS]: 2048,
       [SettingIdEnum.MODEL_NAME]: 'gpt-4-turbo',
-      //
-      [SettingIdEnum.CONSOLE_LOGS]: false,
-      [SettingIdEnum.INFO_MESSAGES]: true,
-      [SettingIdEnum.LOG_RETENTION_DURATION]:
-        DurationEnum[DurationEnum['Six Months']],
     }
 
     const settingids = Object.values(SettingIdEnum)
@@ -102,7 +102,7 @@ export class Database extends Dexie {
    * retention time is set to 'Forever', no logs will be deleted.
    * @returns The number of logs deleted
    */
-  async deleteExpiredLogsOnStartup() {
+  async deleteExpiredLogs() {
     const setting = await this.table(TableEnum.SETTINGS).get(
       SettingIdEnum.LOG_RETENTION_DURATION,
     )

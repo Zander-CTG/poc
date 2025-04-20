@@ -19,13 +19,10 @@ useMeta({ title: `${appName} - Upload` })
 const $q = useQuasar()
 const { log } = useLogger()
 const settingsStore = useSettingsStore()
-const backendStore = useBackend()
+const { initializeClient, loginUser, uploadImage } = useBackend()
 
 const importImage: Ref<File> = ref(null!)
 const imageUrl: Ref<string | null> = ref(null)
-const loadedImages: Ref<
-  { id: string; metadata: any; url: string; created_at: string }[]
-> = ref([])
 
 const trackedImageId: Ref<IdType> = ref(null!)
 const trackedPromptId: Ref<IdType> = ref(null!)
@@ -207,113 +204,23 @@ function processResponseItems(
 /**
  * TODO
  */
-async function supabaseTest() {
-  const { supabase, user } = backendStore
+async function supabaseImageTest() {
   try {
-    const record = {
-      owner_user_id: user?.id,
-    }
-    log.print('Inserting Record', {
-      record,
-      user,
-    })
-
-    // Create initial metadata record to get id
-    const { data: imageMetadataRecords, error: metadataError } = await supabase
-      .from('mjoy_image_metadata')
-      .insert(record)
-      .select()
-
-    if (metadataError) {
-      throw metadataError
-    }
-
-    const imageMetadataRecord = imageMetadataRecords?.[0]
-
-    // Upload file to storage
-    const { data: fileData, error: fileError } = await supabase.storage
-      .from('mjoy-uploaded-images')
-      .upload(
-        `${imageMetadataRecord.owner_user_id}/${imageMetadataRecord.id}`,
-        importImage.value,
-      )
-
-    if (fileError) {
-      throw fileError
-    }
+    initializeClient(
+      settingsStore.projectUrl as string,
+      settingsStore.projectApiKey as string,
+    )
+    loginUser(
+      settingsStore.userEmail as string,
+      settingsStore.userPassword as string,
+    )
+    const { imageMetadataRecord, fileData } = await uploadImage(
+      importImage.value,
+    )
 
     log.info('Inserted record', { imageMetadataRecord, fileData })
   } catch (error) {
     log.error('Error inserting record', error as Error)
-  }
-}
-
-/**
- * TODO
- */
-async function loadImages() {
-  try {
-    const { supabase, user } = backendStore
-    loadedImages.value = []
-
-    $q.loading.show({
-      spinner: QSpinnerGears,
-      message: 'Loading Images',
-    })
-
-    // Get metadata records for the current user
-    const { data: metadataRecords, error: metadataError } = await supabase
-      .from('mjoy_image_metadata')
-      .select('*')
-      .eq('owner_user_id', user?.id)
-
-    if (metadataError) {
-      throw metadataError
-    }
-
-    if (!metadataRecords || metadataRecords.length === 0) {
-      log.info('No images found for user')
-      return
-    }
-
-    log.info('Found image records', { count: metadataRecords.length })
-
-    // For each metadata record, get the image from storage
-    for (const record of metadataRecords) {
-      const filePath = `${record.owner_user_id}/${record.id}`
-
-      // Create a signed URL with expiration (e.g., 60 minutes)
-      const { data: signedUrlData, error: signedUrlError } =
-        await supabase.storage
-          .from('mjoy-uploaded-images')
-          .createSignedUrl(filePath, 60 * 60) // Expires in 1 hour (3600 seconds)
-
-      if (signedUrlError) {
-        log.warn(
-          `Error getting signed URL for image ${record.id}`,
-          signedUrlError,
-        )
-        continue
-      }
-
-      if (signedUrlData?.signedUrl) {
-        // Create an image object with metadata and URL
-        const imageObj = {
-          id: record.id,
-          metadata: record,
-          url: signedUrlData.signedUrl,
-          created_at: record.created_at,
-        }
-
-        loadedImages.value.push(imageObj)
-      }
-    }
-
-    log.info('Loaded images', { count: loadedImages.value.length })
-  } catch (error) {
-    log.error('Error loading images', error as Error)
-  } finally {
-    $q.loading.hide()
   }
 }
 </script>
@@ -380,38 +287,10 @@ async function loadImages() {
                 :disable="!importImage || $q.loading.isActive"
                 :icon="importFileIcon"
                 color="primary"
-                @click="supabaseTest()"
+                @click="supabaseImageTest()"
               />
             </template>
           </q-file>
-        </q-item-section>
-      </q-item>
-
-      <q-item class="q-mb-sm">
-        <q-btn
-          :disable="$q.loading.isActive"
-          color="primary"
-          label="Load Images"
-          @click="loadImages()"
-        />
-      </q-item>
-
-      <q-item v-if="loadedImages.length > 0" class="q-mb-sm">
-        <q-item-section top>
-          <q-item-label>Images Found: {{ loadedImages.length }}</q-item-label>
-          <div class="row q-mt-md">
-            <div
-              v-for="image in loadedImages"
-              :key="image.id"
-              class="col-12 col-sm-6 col-md-4 q-pa-sm"
-            >
-              <q-img
-                :src="image.url"
-                style="height: 200px; width: 100%"
-                fit="contain"
-              />
-            </div>
-          </div>
         </q-item-section>
       </q-item>
 

@@ -81,21 +81,21 @@ export enum DurationMSEnum {
  * The only valid IDs for settings in the application.
  */
 export enum SettingIdEnum {
+  // For App
+  CONSOLE_LOGS = 'Console Logs',
+  INFO_POPUPS = 'Info Popus',
+  LOG_RETENTION_DURATION = 'Log Rentention Duration',
+  LOGIN_OVERLAY = 'Login Overlay',
+  // For Supabase
   USER_EMAIL = 'User Email',
-  USER_PASSWORD = 'User Password',
-  //
   PROJECT_URL = 'Project URL',
-  PROJECT_API_KEY = 'Project API Key',
-  //
-  AI_API_KEY = 'AI API Key',
+  PROJECT_ANON_API_KEY = 'Project Anon API Key',
+  // For OpenAI
+  OPENAI_API_KEY = 'OpenAI API Key',
   SYSTEM_PROMPT = 'System Prompt',
   USER_PROMPT = 'User Prompt',
   MAX_TOKENS = 'Max Tokens',
   MODEL_NAME = 'Model Name',
-  //
-  CONSOLE_LOGS = 'Console Logs',
-  INFO_MESSAGES = 'Info Messages',
-  LOG_RETENTION_DURATION = 'Log Rentention Duration',
 }
 
 //

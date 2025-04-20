@@ -1,4 +1,3 @@
-import type { Component } from 'vue'
 import { z } from 'zod'
 import type {
   idSchema,
@@ -15,31 +14,6 @@ import type {
   textLineSchema,
   timestampSchema,
 } from './schemas'
-
-//
-// App
-//
-
-export type BackupType = {
-  appName: string
-  databaseVersion: string
-  createdAt: TimestampType
-  settings: SettingType[]
-  logs: LogType[]
-  images: any[] // TODO
-  objects: any[] // TODO
-}
-
-export type SelectOption = {
-  value: IdType
-  label: string
-  disable: boolean
-}
-
-export type ComponentWithPropsType = {
-  component: Component
-  props?: Record<string, any>
-}
 
 //
 // Shared
