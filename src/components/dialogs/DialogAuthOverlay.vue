@@ -10,8 +10,7 @@ import { onUpdated, ref, type Ref } from 'vue'
 
 const $q = useQuasar()
 const { log } = useLogger()
-const { getLoginOverlaySetting, getProjectUrlSetting, getUserEmailSetting } =
-  useSettingsStore()
+const { getLoginOverlaySetting, getUserEmailSetting } = useSettingsStore()
 const { userLoginRequired, loginUser, logoutUser } = useBackend()
 
 const loginRequired: Ref<boolean> = ref(false)
@@ -34,7 +33,11 @@ async function onLogin() {
       spinner: QSpinnerGears,
       message: 'Authenticating',
     })
+
     await loginUser(getUserEmailSetting(), password.value)
+
+    log.info('User logged in successfully')
+
     DB.table(TableEnum.SETTINGS).put({
       id: SettingIdEnum.LOGIN_OVERLAY,
       value: false,
@@ -52,7 +55,10 @@ async function onLogout() {
       spinner: QSpinnerGears,
       message: 'Logging Out',
     })
+
     await logoutUser()
+
+    log.info('User logged out successfully')
   } catch (error) {
     log.error('Error during logout', error as Error)
   } finally {
@@ -86,26 +92,14 @@ function onClose() {
     <q-card flat square style="width: 500px">
       <q-card-section>
         <q-list v-if="loginRequired" padding>
-          <q-item class="text-h6"> Login to {{ appName }} </q-item>
-
           <q-item>
             <q-item-section top>
-              <q-item-label>Project URL</q-item-label>
-              <q-item-label>
-                <q-input
-                  :model-value="getProjectUrlSetting()"
-                  @update:model-value="
-                    DB.table(TableEnum.SETTINGS).put({
-                      id: SettingIdEnum.PROJECT_URL,
-                      value: $event,
-                    })
-                  "
-                  type="text"
-                  lazy-rules
-                  dense
-                  outlined
-                  color="primary"
-                />
+              <q-item-label class="text-h6"
+                >Login to {{ appName }}</q-item-label
+              >
+              <q-item-label caption>
+                The Project URL and Project Anon API Key will also be required
+                to create the Supabase client.
               </q-item-label>
             </q-item-section>
           </q-item>
