@@ -1,5 +1,3 @@
-import { ParentImage } from '@/models/Image'
-import { ChildItem } from '@/models/Item'
 import { Log } from '@/models/Log'
 import { Prompt } from '@/models/Prompt'
 import { Setting } from '@/models/Setting'
@@ -154,28 +152,6 @@ export class Database extends Dexie {
   livePrompts(): Observable<Prompt[]> {
     return liveQuery(() =>
       this.table(TableEnum.PROMPTS).orderBy('createdAt').reverse().toArray(),
-    )
-  }
-
-  /**
-   * Returns an observable of the images in the database. The images are ordered by createdAt in
-   * descending order. This is a live query, so it will update automatically when the database
-   * changes.
-   */
-  liveImages(): Observable<ParentImage[]> {
-    return liveQuery(() =>
-      this.table(TableEnum.IMAGES).orderBy('createdAt').reverse().toArray(),
-    )
-  }
-
-  /**
-   * Returns an observable of the items in the database. The items are ordered by createdAt in
-   * descending order. This is a live query, so it will update automatically when the database
-   * changes.
-   */
-  liveItems(): Observable<ChildItem[]> {
-    return liveQuery(() =>
-      this.table(TableEnum.ITEMS).orderBy('createdAt').reverse().toArray(),
     )
   }
 }

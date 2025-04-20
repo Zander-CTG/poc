@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import DialogInspectItem from '@/components/dialogs/DialogInspectItem.vue'
-import type { ChildItem } from '@/models/Item'
-import { DB } from '@/services/db'
 import { appName } from '@/shared/constants'
 import { closeIcon, columnsIcon, itemsIcon, searchIcon } from '@/shared/icons'
 import type { IdType } from '@/shared/types'
@@ -15,13 +13,15 @@ import {
 import useLogger from '@/use/useLogger'
 import useRouting from '@/use/useRouting'
 import { useMeta, useQuasar, type QTableColumn } from 'quasar'
-import { onUnmounted, ref, type Ref } from 'vue'
+import { onMounted, ref, type Ref } from 'vue'
 
 useMeta({ title: `${appName} - Data Table` })
 
 const $q = useQuasar()
 const { log } = useLogger()
 const { goBack } = useRouting()
+
+const items: Ref<Record<string, any>[]> = ref([]) // TODO: Replace with actual data type
 
 const searchFilter: Ref<string> = ref('')
 const tableColumns = [
@@ -42,15 +42,12 @@ const visibleColumns: Ref<string[]> = ref(
   visibleColumnsFromTableColumns(tableColumns),
 )
 
-const liveData: Ref<ChildItem[]> = ref([])
-
-const subscription = DB.liveItems().subscribe({
-  next: (data: ChildItem[]) => (liveData.value = data),
-  error: (error) => log.error('Error fetching live Items', error),
-})
-
-onUnmounted(() => {
-  subscription.unsubscribe()
+onMounted(async () => {
+  try {
+    // itemRecords.value = await loadItems() // TODO
+  } catch (error) {
+    log.error('Error loading images', error as Error)
+  }
 })
 
 function onInspect(id: IdType) {
@@ -64,7 +61,7 @@ function onInspect(id: IdType) {
 <template>
   <q-table
     fullscreen
-    :rows="liveData"
+    :rows="items"
     :columns="tableColumns"
     :visible-columns="visibleColumns"
     :rows-per-page-options="[0]"
@@ -115,7 +112,7 @@ function onInspect(id: IdType) {
 
       <div class="row justify-start full-width">
         <q-input
-          :disable="!liveData.length"
+          :disable="!items.length"
           outlined
           dense
           clearable
@@ -128,7 +125,7 @@ function onInspect(id: IdType) {
             <q-select
               v-model="visibleColumns"
               :options="columnOptions"
-              :disable="!liveData.length"
+              :disable="!items.length"
               multiple
               dense
               options-dense
@@ -152,7 +149,7 @@ function onInspect(id: IdType) {
     </template>
 
     <template v-slot:bottom>
-      {{ recordsCount(liveData, 'Item', 'Items') }}
+      {{ recordsCount(items, 'Item', 'Items') }}
     </template>
   </q-table>
 </template>

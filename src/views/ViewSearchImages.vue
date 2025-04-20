@@ -4,21 +4,20 @@ import type { ParentImage } from '@/models/Image'
 import { appName } from '@/shared/constants'
 import { closeIcon, itemsIcon } from '@/shared/icons'
 import { recordsCount } from '@/shared/utils'
-import { useBackend } from '@/stores/backend'
 import useLogger from '@/use/useLogger'
 import useRouting from '@/use/useRouting'
 import { useMeta, useQuasar } from 'quasar'
 import { onMounted, ref, type Ref } from 'vue'
 
-useMeta({ title: `${appName} - Data Table` })
+useMeta({ title: `${appName} - Search Images` })
 
 const $q = useQuasar()
 const { log } = useLogger()
 const { goBack } = useRouting()
-const { loadImages } = useBackend()
 
 const searchFilter: Ref<string> = ref('')
 
+// TODO
 const imageRecords: Ref<
   {
     id: string
@@ -30,7 +29,7 @@ const imageRecords: Ref<
 
 onMounted(async () => {
   try {
-    imageRecords.value = await loadImages()
+    // imageRecords.value = await loadImages() // TODO
   } catch (error) {
     log.error('Error loading images', error as Error)
   }

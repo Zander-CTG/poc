@@ -184,10 +184,34 @@ export const useBackend = defineStore('backend', () => {
     const items = parsedContent?.items || []
     const visibleText = parsedContent?.visible_text || []
 
-    console.log('Items:', items) // TEMP
-    console.log('Visible Text:', visibleText) // TEMP
-    // TODO: Create item records in the database
-    // TODO: Remove items and images from local storage considerations
+    // Update the image_metadata record with the visible text array
+    const { data: updatedImage, error: updateError } = await supabase.value
+      .from('mjoy_image_metadata')
+      .update({ visible_text: visibleText })
+      .eq('id', imageMetadataRecord.id)
+      .select()
+
+    if (updateError)
+      throw new Error(`Error updating image metadata: ${updateError.message}`)
+
+    // Create an item record for each
+    const preparedItems = items.map((item: Record<string, any>) => ({
+      ...item,
+      image_metadata_id: imageMetadataRecord.id,
+    }))
+
+    const { data: insertedItems, error: insertError } = await supabase.value
+      .from('mjoy_items')
+      .insert(preparedItems)
+      .select()
+
+    if (insertError)
+      throw new Error(`Error inserting items: ${insertError.message}`)
+
+    return {
+      image: updatedImage,
+      items: insertedItems,
+    }
   }
 
   // -----Getters

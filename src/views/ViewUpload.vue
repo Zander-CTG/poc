@@ -46,9 +46,9 @@ async function onUploadImage() {
       log.error('Error reading file', error)
     }
 
-    await uploadAndProcessImage(importImage.value)
+    const { image, items } = await uploadAndProcessImage(importImage.value)
 
-    log.info('Image Processed')
+    log.info('Image Processed', { image, items })
   } catch (error) {
     log.error('Error processing image', error as Error)
   } finally {
