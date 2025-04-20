@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChildPrompt } from '@/models/Prompt'
+import type { Prompt } from '@/models/Prompt'
 import { DB } from '@/services/db'
 import { TableEnum } from '@/shared/enums'
 import { closeIcon, inspectIcon } from '@/shared/icons'
@@ -28,7 +28,7 @@ onMounted(async () => {
     recordStore.record = (await DB.table(TableEnum.PROMPTS)
       .where('id')
       .equals(props.id)
-      .first()) as ChildPrompt
+      .first()) as Prompt
   } catch (error) {
     log.error('Error loading record', error as Error)
   }
@@ -79,6 +79,10 @@ onUnmounted(() => {
                 <InspectItemObject
                   label="Response Data"
                   recordKey="response_data"
+                />
+                <InspectItemString
+                  label="Response Content JSON"
+                  recordKey="response_content_json"
                 />
               </div>
             </q-list>

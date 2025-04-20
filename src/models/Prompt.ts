@@ -10,14 +10,15 @@ interface ChildPromptParams {
   system_prompt: string
   user_prompt: string
   max_tokens: number
-  response_time?: number
-  response_data?: Record<string, any>
+  response_time: number
+  response_data: Record<string, any>
+  response_content_json: string
 }
 
 /**
  * The child prompt of a parent images.
  */
-export class ChildPrompt {
+export class Prompt {
   id: IdType
   createdAt: TimestampType
   image_id: IdType
@@ -25,8 +26,9 @@ export class ChildPrompt {
   system_prompt: string
   user_prompt: string
   max_tokens: number
-  response_time?: number
-  response_data?: Record<string, any>
+  response_time: number
+  response_data: Record<string, any>
+  response_content_json: string
 
   constructor(params: ChildPromptParams) {
     this.id = params.id ?? createId(TableEnum.PROMPTS)
@@ -38,5 +40,6 @@ export class ChildPrompt {
     this.max_tokens = params.max_tokens ?? 0
     this.response_time = params.response_time ?? undefined
     this.response_data = params.response_data ?? undefined
+    this.response_content_json = params.response_content_json ?? undefined
   }
 }

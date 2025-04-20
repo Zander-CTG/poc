@@ -1,7 +1,7 @@
 import { ParentImage } from '@/models/Image'
 import { ChildItem } from '@/models/Item'
 import { Log } from '@/models/Log'
-import { ChildPrompt } from '@/models/Prompt'
+import { Prompt } from '@/models/Prompt'
 import { Setting } from '@/models/Setting'
 import {
   appDatabaseVersion,
@@ -26,9 +26,7 @@ export class Database extends Dexie {
   // Required for easier TypeScript usage
   [TableEnum.SETTINGS]!: Table<Setting>;
   [TableEnum.LOGS]!: Table<Log>;
-  [TableEnum.IMAGES]!: Table<ParentImage>;
-  [TableEnum.ITEMS]!: Table<ChildItem>;
-  [TableEnum.PROMPTS]!: Table<ChildPrompt>
+  [TableEnum.PROMPTS]!: Table<Prompt>
 
   constructor(name: string) {
     super(name)
@@ -36,16 +34,12 @@ export class Database extends Dexie {
     this.version(1).stores({
       [TableEnum.SETTINGS]: '&id',
       [TableEnum.LOGS]: '&id, createdAt',
-      [TableEnum.IMAGES]: '&id, createdAt',
-      [TableEnum.ITEMS]: '&id, createdAt, image_id',
-      [TableEnum.PROMPTS]: '&id, createdAt, image_id',
+      [TableEnum.PROMPTS]: '&id, createdAt',
     })
 
     this[TableEnum.SETTINGS].mapToClass(Setting)
     this[TableEnum.LOGS].mapToClass(Log)
-    this[TableEnum.IMAGES].mapToClass(ParentImage)
-    this[TableEnum.ITEMS].mapToClass(ChildItem)
-    this[TableEnum.PROMPTS].mapToClass(ChildPrompt)
+    this[TableEnum.PROMPTS].mapToClass(Prompt)
   }
 
   /**
@@ -157,7 +151,7 @@ export class Database extends Dexie {
    * descending order. This is a live query, so it will update automatically when the database
    * changes.
    */
-  livePrompts(): Observable<ChildPrompt[]> {
+  livePrompts(): Observable<Prompt[]> {
     return liveQuery(() =>
       this.table(TableEnum.PROMPTS).orderBy('createdAt').reverse().toArray(),
     )

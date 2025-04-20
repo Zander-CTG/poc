@@ -32,7 +32,7 @@ async function onLogin() {
   try {
     $q.loading.show({
       spinner: QSpinnerGears,
-      message: 'Authenticating...',
+      message: 'Authenticating',
     })
     await loginUser(getUserEmailSetting(), password.value)
     DB.table(TableEnum.SETTINGS).put({
@@ -50,7 +50,7 @@ async function onLogout() {
   try {
     $q.loading.show({
       spinner: QSpinnerGears,
-      message: 'Logging out...',
+      message: 'Logging Out',
     })
     await logoutUser()
   } catch (error) {
