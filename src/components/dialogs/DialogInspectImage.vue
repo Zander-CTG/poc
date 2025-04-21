@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import type { ParentImage } from '@/models/Image'
-import type { ChildItem } from '@/models/Item'
-import { DB } from '@/services/db'
-import { TableEnum } from '@/shared/enums'
+import InspectItemList from '@/components/dialogs/inspect/InspectItemList.vue'
+import InspectItemString from '@/components/dialogs/inspect/InspectItemString.vue'
 import { closeIcon, inspectIcon } from '@/shared/icons'
-import type { IdType } from '@/shared/types'
 import { truncateText } from '@/shared/utils'
+import { useBackend } from '@/stores/backend'
 import { useRecordStore } from '@/stores/record'
 import useLogger from '@/use/useLogger'
 import { useDialogPluginComponent } from 'quasar'
-import { onMounted, onUnmounted, ref, type Ref } from 'vue'
-import InspectItemDate from './inspect/InspectItemDate.vue'
-import InspectItemList from './inspect/InspectItemList.vue'
-import InspectItemString from './inspect/InspectItemString.vue'
+import { onMounted, onUnmounted } from 'vue'
 
 const props = defineProps<{
-  id: IdType
+  record: {
+    id: string
+    user_id: string
+    visible_text: string[]
+    created_at: string
+    url: string
+  }
 }>()
 
 defineEmits([...useDialogPluginComponent.emits])
@@ -23,26 +24,12 @@ const { dialogRef, onDialogHide, onDialogCancel } = useDialogPluginComponent()
 
 const { log } = useLogger()
 const recordStore = useRecordStore()
-
-const imageUrl: Ref<string | null> = ref(null)
+const { fetchImageItems } = useBackend()
 
 onMounted(async () => {
   try {
-    recordStore.record = (await DB.table(TableEnum.IMAGES)
-      .where('id')
-      .equals(props.id)
-      .first()) as ParentImage
-
-    const items = (await DB.table(TableEnum.ITEMS)
-      .where('image_id')
-      .equals(props.id)
-      .toArray()) as ChildItem[]
-
-    recordStore.items = items
-
-    if (recordStore.record?.file) {
-      imageUrl.value = URL.createObjectURL(recordStore.record.file)
-    }
+    recordStore.record = props.record
+    recordStore.items = await fetchImageItems(props.record.id)
   } catch (error) {
     log.error('Error loading record', error as Error)
   }
@@ -72,21 +59,22 @@ onUnmounted(() => {
         <div class="row justify-center">
           <div class="responsive-container">
             <q-list padding>
-              <q-item v-if="imageUrl" class="q-mb-sm">
-                <q-item-section top>
-                  <q-item-label>
-                    <img
-                      :src="imageUrl"
-                      alt="Uploaded Image"
-                      style="max-width: 100%"
-                    />
-                  </q-item-label>
-                </q-item-section>
+              <q-item>
+                <q-img
+                  v-if="record?.url"
+                  :src="record.url"
+                  alt="Uploaded Image"
+                  class="uploaded-image"
+                />
               </q-item>
 
               <div v-if="recordStore.record">
                 <InspectItemString label="Id" recordKey="id" />
-                <InspectItemDate label="Created Date" recordKey="createdAt" />
+                <InspectItemString label="User Id" recordKey="user_id" />
+                <InspectItemString
+                  label="Created Date"
+                  recordKey="created_at"
+                />
                 <InspectItemList
                   label="Visible Text"
                   recordKey="visible_text"
@@ -123,6 +111,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.uploaded-image {
+  max-width: 100%;
+  object-fit: contain;
+}
 .toolbar-height {
   max-height: 50px;
 }

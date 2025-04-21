@@ -1,4 +1,3 @@
-import type { ChildItem } from '@/models/Item'
 import { defineStore } from 'pinia'
 
 /**
@@ -9,6 +8,6 @@ export const useRecordStore = defineStore({
 
   state: () => ({
     record: {} as Record<string, any>,
-    items: [] as ChildItem[],
+    items: [] as Record<string, any>[],
   }),
 })

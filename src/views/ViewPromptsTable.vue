@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import DialogInspectPrompt from '@/components/dialogs/DialogInspectPrompt.vue'
-import type { ChildPrompt } from '@/models/Prompt'
+import type { Prompt } from '@/models/Prompt'
 import { DB } from '@/services/db'
 import { appName } from '@/shared/constants'
 import {
@@ -42,6 +42,7 @@ const tableColumns = [
   tableColumn('max_tokens', 'Max Tokens', 'TEXT'),
   tableColumn('response_time', 'Response Time', 'TEXT'),
   tableColumn('response_data', 'Response Data', 'JSON'),
+  tableColumn('response_content_json', 'Response Content JSON', 'TEXT'),
 ]
 const columnOptions: Ref<QTableColumn[]> = ref(
   columnOptionsFromTableColumns(tableColumns),
@@ -50,7 +51,7 @@ const visibleColumns: Ref<string[]> = ref(
   visibleColumnsFromTableColumns(tableColumns),
 )
 
-const liveData: Ref<ChildPrompt[]> = ref([])
+const liveData: Ref<Prompt[]> = ref([])
 const isLiveQueryFinished = ref(false)
 
 const subscription = DB.livePrompts().subscribe({

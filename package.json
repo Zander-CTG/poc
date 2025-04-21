@@ -21,6 +21,7 @@
     "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^4.1.0",
     "dexie": "^4.0.10",
+    "jwt-decode": "^4.0.0",
     "pinia": "^2.2.6",
     "quasar": "^2.17.2",
     "vue": "^3.5.12",

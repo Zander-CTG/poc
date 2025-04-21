@@ -18,17 +18,14 @@ import {
   keyIcon,
   logsTableIcon,
   optionsIcon,
-  personIcon,
   refreshIcon,
   settingsTableIcon,
   voiceIcon,
   warnIcon,
 } from '@/shared/icons'
-import { useBackend } from '@/stores/backend'
 import { useSettingsStore } from '@/stores/settings'
 import useLogger from '@/use/useLogger'
-import { createClient } from '@supabase/supabase-js'
-import { QSpinnerGears, useMeta, useQuasar } from 'quasar'
+import { useMeta, useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 
 useMeta({ title: `${appName} - Settings` })
@@ -36,10 +33,19 @@ useMeta({ title: `${appName} - Settings` })
 const $q = useQuasar()
 const router = useRouter()
 const { log } = useLogger()
-const settingsStore = useSettingsStore()
-const backendStore = useBackend()
+const {
+  getConsoleLogsSetting,
+  getInfoPopupsSetting,
+  getLogRetentionDurationSetting,
+  getProjectUrlSetting,
+  getProjectAnonApiKeySetting,
+  getOpenAiApiKeySetting,
+  getSystemPromptSetting,
+  getUserPromptSetting,
+  getMaxTokensSetting,
+  getModelNameSetting,
+} = useSettingsStore()
 
-const modelOptions = ['gpt-4-turbo']
 const logDurationsOptions = [
   DurationEnum['One Week'],
   DurationEnum['One Month'],
@@ -66,7 +72,7 @@ function onResetSettings() {
     try {
       $q.loading.show()
       await DB.table(TableEnum.SETTINGS).clear()
-      await DB.initializeSettingsOnStartup() // Re-initialize settings immediately
+      await DB.initializeSettings() // Re-initialize settings immediately
       log.info('Successfully reset settings')
     } catch (error) {
       log.error('Error resetting settings', error as Error)
@@ -162,68 +168,41 @@ function onDeleteDatabase() {
     }
   })
 }
-
-/**
- * Authenticates the user with Supabase with the provided credentials.
- */
-async function onAuthenticate() {
-  $q.loading.show({
-    spinner: QSpinnerGears,
-    message: 'Authenticating',
-  })
-
-  const projectUrl = settingsStore.projectUrl as string
-  const projectApiKey = settingsStore.projectApiKey as string
-  const email = settingsStore.userEmail as string
-  const password = settingsStore.userPassword as string
-
-  try {
-    // All required values for connecting to the backend
-    if (!projectUrl) {
-      log.error('Project URL is missing')
-    } else if (!projectApiKey) {
-      log.error('Project API Key is missing')
-    } else if (!email) {
-      log.error('User email is missing')
-    } else if (!password) {
-      log.error('User password is missing')
-    } else {
-      // Connect to Supabase
-      backendStore.supabase = createClient(projectUrl, projectApiKey)
-      await backendStore.supabase.auth.signOut() // Sign out any existing user
-      const user = await backendStore.supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      log.info('User authenticated successfully', { user: user.data.user })
-      // Store user
-      backendStore.user = user.data.user
-    }
-  } catch (error) {
-    log.error('Error during authentication', error as Error)
-  } finally {
-    $q.loading.hide()
-  }
-}
 </script>
 
 <template>
   <PageResponsive>
     <q-list padding>
       <q-item-label header>
-        <q-icon class="on-left" size="sm" :name="personIcon" />
-        Account
+        <q-icon class="on-left" size="sm" :name="apiIcon" />
+        Backend
       </q-item-label>
 
       <q-item>
+        <q-btn
+          :disable="$q.loading.isActive"
+          class="col"
+          label="Auth Status"
+          color="primary"
+          :icon="keyIcon"
+          @click="
+            DB.table(TableEnum.SETTINGS).put({
+              id: SettingIdEnum.LOGIN_OVERLAY,
+              value: true,
+            })
+          "
+        />
+      </q-item>
+
+      <q-item>
         <q-item-section top>
-          <q-item-label>Email</q-item-label>
+          <q-item-label>Project URL</q-item-label>
           <q-item-label>
             <q-input
-              :model-value="settingsStore.userEmail as string"
+              :model-value="getProjectUrlSetting()"
               @update:model-value="
                 DB.table(TableEnum.SETTINGS).put({
-                  id: SettingIdEnum.USER_EMAIL,
+                  id: SettingIdEnum.PROJECT_URL,
                   value: $event,
                 })
               "
@@ -239,66 +218,13 @@ async function onAuthenticate() {
 
       <q-item>
         <q-item-section top>
-          <q-item-label>Password</q-item-label>
+          <q-item-label>Project Anon API Key</q-item-label>
           <q-item-label>
             <q-input
-              :model-value="settingsStore.userPassword as string"
+              :model-value="getProjectAnonApiKeySetting()"
               @update:model-value="
                 DB.table(TableEnum.SETTINGS).put({
-                  id: SettingIdEnum.USER_PASSWORD,
-                  value: $event,
-                })
-              "
-              type="password"
-              lazy-rules
-              dense
-              outlined
-              color="primary"
-            />
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item>
-        <q-btn
-          class="col"
-          label="Authenticate"
-          color="primary"
-          :icon="keyIcon"
-          @click="onAuthenticate"
-        />
-      </q-item>
-
-      <q-item v-if="backendStore.user?.id">
-        <q-item-section top>
-          <q-item-label>Current User</q-item-label>
-          <q-item-label v-if="backendStore.user?.id" caption>
-            {{ backendStore.user.id }}
-          </q-item-label>
-          <q-item-label v-if="backendStore.user?.email" caption>
-            {{ backendStore.user.email }}
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-    </q-list>
-
-    <q-separator />
-
-    <q-list padding>
-      <q-item-label header>
-        <q-icon class="on-left" size="sm" :name="apiIcon" />
-        Backend
-      </q-item-label>
-
-      <q-item>
-        <q-item-section top>
-          <q-item-label>Project URL</q-item-label>
-          <q-item-label>
-            <q-input
-              :model-value="settingsStore.projectUrl as string"
-              @update:model-value="
-                DB.table(TableEnum.SETTINGS).put({
-                  id: SettingIdEnum.PROJECT_URL,
+                  id: SettingIdEnum.PROJECT_ANON_API_KEY,
                   value: $event,
                 })
               "
@@ -315,36 +241,13 @@ async function onAuthenticate() {
 
       <q-item>
         <q-item-section top>
-          <q-item-label>Project API Key</q-item-label>
+          <q-item-label>OpenAI API Key</q-item-label>
           <q-item-label>
             <q-input
-              :model-value="settingsStore.projectApiKey as string"
+              :model-value="getOpenAiApiKeySetting()"
               @update:model-value="
                 DB.table(TableEnum.SETTINGS).put({
-                  id: SettingIdEnum.PROJECT_API_KEY,
-                  value: $event,
-                })
-              "
-              type="textarea"
-              lazy-rules
-              autogrow
-              dense
-              outlined
-              color="primary"
-            />
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item>
-        <q-item-section top>
-          <q-item-label>AI API Key</q-item-label>
-          <q-item-label>
-            <q-input
-              :model-value="settingsStore.aiApiKey as string"
-              @update:model-value="
-                DB.table(TableEnum.SETTINGS).put({
-                  id: SettingIdEnum.AI_API_KEY,
+                  id: SettingIdEnum.OPENAI_API_KEY,
                   value: $event,
                 })
               "
@@ -364,7 +267,7 @@ async function onAuthenticate() {
           <q-item-label>System Prompt</q-item-label>
           <q-item-label>
             <q-input
-              :model-value="settingsStore.systemPrompt as string"
+              :model-value="getSystemPromptSetting()"
               @update:model-value="
                 DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.SYSTEM_PROMPT,
@@ -400,7 +303,7 @@ async function onAuthenticate() {
           <q-item-label>User Prompt</q-item-label>
           <q-item-label>
             <q-input
-              :model-value="settingsStore.userPrompt as string"
+              :model-value="getUserPromptSetting()"
               @update:model-value="
                 DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.USER_PROMPT,
@@ -436,7 +339,7 @@ async function onAuthenticate() {
           <q-item-label>Max Tokens</q-item-label>
           <q-item-label>
             <q-select
-              :model-value="(settingsStore.maxTokens as number) ?? 2048"
+              :model-value="getMaxTokensSetting()"
               @update:model-value="
                 DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.MAX_TOKENS,
@@ -445,7 +348,7 @@ async function onAuthenticate() {
               "
               :options="[
                 1,
-                ...Array.from({ length: 32 }, (_, i) => (i + 1) * 128),
+                ...Array.from({ length: 16 }, (_, i) => (i + 1) * 256),
               ]"
               dense
               outlined
@@ -458,19 +361,19 @@ async function onAuthenticate() {
         <q-item-section top>
           <q-item-label>Model Name</q-item-label>
           <q-item-label>
-            <q-select
-              :model-value="
-                (settingsStore.modelName as string) ?? 'gpt-4-turbo'
-              "
+            <q-input
+              :model-value="getModelNameSetting()"
               @update:model-value="
                 DB.table(TableEnum.SETTINGS).put({
                   id: SettingIdEnum.MODEL_NAME,
-                  value: Number($event),
+                  value: $event,
                 })
               "
-              :options="modelOptions"
+              type="text"
+              lazy-rules
               dense
               outlined
+              color="primary"
             />
           </q-item-label>
         </q-item-section>
@@ -495,10 +398,10 @@ async function onAuthenticate() {
 
         <q-item-section side>
           <q-toggle
-            :model-value="settingsStore.infoMessages"
+            :model-value="getInfoPopupsSetting()"
             @update:model-value="
               DB.table(TableEnum.SETTINGS).put({
-                id: SettingIdEnum.INFO_MESSAGES,
+                id: SettingIdEnum.INFO_POPUPS,
                 value: $event,
               })
             "
@@ -518,7 +421,7 @@ async function onAuthenticate() {
 
         <q-item-section side>
           <q-toggle
-            :model-value="settingsStore.consoleLogs"
+            :model-value="getConsoleLogsSetting()"
             @update:model-value="
               DB.table(TableEnum.SETTINGS).put({
                 id: SettingIdEnum.CONSOLE_LOGS,
@@ -541,7 +444,7 @@ async function onAuthenticate() {
 
         <q-item-section side>
           <q-select
-            :model-value="settingsStore.logRetentionDuration"
+            :model-value="getLogRetentionDurationSetting()"
             @update:model-value="
               DB.table(TableEnum.SETTINGS).put({
                 id: SettingIdEnum.LOG_RETENTION_DURATION,

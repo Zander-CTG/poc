@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import {
-  DurationEnum,
   LimitEnum,
   LogLevelEnum,
   RouteNameEnum,
@@ -23,6 +22,8 @@ export const idSchema = z.string().refine(
     // Trim off prefix and check if uuid is valid
     // Does not validate if the prefix used is correct
     if (z.string().uuid().safeParse(id.substring(4)).success) {
+      return true // prefix uuid valid
+    } else if (z.string().uuid().safeParse(id).success) {
       return true // uuid valid
     } else if (settingIdSchema.safeParse(id).success) {
       return true // setting id valid
@@ -47,12 +48,7 @@ export const textAreaSchema = z.string().max(LimitEnum.MAX_TEXT_AREA).trim() // 
 //
 
 export const settingIdSchema = z.nativeEnum(SettingIdEnum)
-export const settingValueSchema = z.union([
-  z.boolean(),
-  z.string(),
-  z.number(),
-  z.nativeEnum(DurationEnum),
-])
+export const settingValueSchema = z.union([z.boolean(), z.string(), z.number()])
 export const settingSchema = z.object({
   id: settingIdSchema, // Instead of standard ID
   value: settingValueSchema,

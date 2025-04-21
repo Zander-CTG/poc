@@ -1,7 +1,5 @@
-import { ParentImage } from '@/models/Image'
-import { ChildItem } from '@/models/Item'
 import { Log } from '@/models/Log'
-import { ChildPrompt } from '@/models/Prompt'
+import { Prompt } from '@/models/Prompt'
 import { Setting } from '@/models/Setting'
 import {
   appDatabaseVersion,
@@ -26,9 +24,7 @@ export class Database extends Dexie {
   // Required for easier TypeScript usage
   [TableEnum.SETTINGS]!: Table<Setting>;
   [TableEnum.LOGS]!: Table<Log>;
-  [TableEnum.IMAGES]!: Table<ParentImage>;
-  [TableEnum.ITEMS]!: Table<ChildItem>;
-  [TableEnum.PROMPTS]!: Table<ChildPrompt>
+  [TableEnum.PROMPTS]!: Table<Prompt>
 
   constructor(name: string) {
     super(name)
@@ -36,16 +32,12 @@ export class Database extends Dexie {
     this.version(1).stores({
       [TableEnum.SETTINGS]: '&id',
       [TableEnum.LOGS]: '&id, createdAt',
-      [TableEnum.IMAGES]: '&id, createdAt',
-      [TableEnum.ITEMS]: '&id, createdAt, image_id',
-      [TableEnum.PROMPTS]: '&id, createdAt, image_id',
+      [TableEnum.PROMPTS]: '&id, createdAt',
     })
 
     this[TableEnum.SETTINGS].mapToClass(Setting)
     this[TableEnum.LOGS].mapToClass(Log)
-    this[TableEnum.IMAGES].mapToClass(ParentImage)
-    this[TableEnum.ITEMS].mapToClass(ChildItem)
-    this[TableEnum.PROMPTS].mapToClass(ChildPrompt)
+    this[TableEnum.PROMPTS].mapToClass(Prompt)
   }
 
   /**
@@ -53,26 +45,26 @@ export class Database extends Dexie {
    * overwritten. If the settings do not exist, they are created with default values.
    * @note This MUST be called in `App.vue` on startup
    */
-  async initializeSettingsOnStartup(): Promise<void> {
+  async initializeSettings(): Promise<void> {
     const defaultSettings: {
       [key in SettingIdEnum]: SettingValueType
     } = {
+      // For App
+      [SettingIdEnum.CONSOLE_LOGS]: false,
+      [SettingIdEnum.INFO_POPUPS]: true,
+      [SettingIdEnum.LOG_RETENTION_DURATION]:
+        DurationEnum[DurationEnum['Six Months']],
+      [SettingIdEnum.LOGIN_OVERLAY]: false,
+      // For Supabase
       [SettingIdEnum.USER_EMAIL]: '',
-      [SettingIdEnum.USER_PASSWORD]: '',
-      //
       [SettingIdEnum.PROJECT_URL]: '',
-      [SettingIdEnum.PROJECT_API_KEY]: '',
-      //
-      [SettingIdEnum.AI_API_KEY]: '',
+      [SettingIdEnum.PROJECT_ANON_API_KEY]: '',
+      // For OpenAI
+      [SettingIdEnum.OPENAI_API_KEY]: '',
       [SettingIdEnum.SYSTEM_PROMPT]: systemPrompt,
       [SettingIdEnum.USER_PROMPT]: userPrompt,
       [SettingIdEnum.MAX_TOKENS]: 2048,
       [SettingIdEnum.MODEL_NAME]: 'gpt-4-turbo',
-      //
-      [SettingIdEnum.CONSOLE_LOGS]: false,
-      [SettingIdEnum.INFO_MESSAGES]: true,
-      [SettingIdEnum.LOG_RETENTION_DURATION]:
-        DurationEnum[DurationEnum['Six Months']],
     }
 
     const settingids = Object.values(SettingIdEnum)
@@ -102,7 +94,7 @@ export class Database extends Dexie {
    * retention time is set to 'Forever', no logs will be deleted.
    * @returns The number of logs deleted
    */
-  async deleteExpiredLogsOnStartup() {
+  async deleteExpiredLogs() {
     const setting = await this.table(TableEnum.SETTINGS).get(
       SettingIdEnum.LOG_RETENTION_DURATION,
     )
@@ -157,31 +149,9 @@ export class Database extends Dexie {
    * descending order. This is a live query, so it will update automatically when the database
    * changes.
    */
-  livePrompts(): Observable<ChildPrompt[]> {
+  livePrompts(): Observable<Prompt[]> {
     return liveQuery(() =>
       this.table(TableEnum.PROMPTS).orderBy('createdAt').reverse().toArray(),
-    )
-  }
-
-  /**
-   * Returns an observable of the images in the database. The images are ordered by createdAt in
-   * descending order. This is a live query, so it will update automatically when the database
-   * changes.
-   */
-  liveImages(): Observable<ParentImage[]> {
-    return liveQuery(() =>
-      this.table(TableEnum.IMAGES).orderBy('createdAt').reverse().toArray(),
-    )
-  }
-
-  /**
-   * Returns an observable of the items in the database. The items are ordered by createdAt in
-   * descending order. This is a live query, so it will update automatically when the database
-   * changes.
-   */
-  liveItems(): Observable<ChildItem[]> {
-    return liveQuery(() =>
-      this.table(TableEnum.ITEMS).orderBy('createdAt').reverse().toArray(),
     )
   }
 }
